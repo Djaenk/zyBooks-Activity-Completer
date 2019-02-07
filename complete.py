@@ -1,19 +1,25 @@
 from selenium import webdriver
-from selenium.webdriver.support.ui import WebDriverWait as wait
-from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.options import Options
 import getpass
 import time
 
 def login(driver):
 	driver.get("https://learn.zybooks.com/signin")
-	email_input = driver.find_element_by_xpath("//*[@id='ember912']")
-	password_input = driver.find_element_by_xpath("//*[@id='ember918']")
-	signin_button = driver.find_element_by_xpath("//*[@id='ember920']")
-	
 	while(True):
+		email_input = driver.find_element_by_xpath("//*[@id='ember912']")
+		password_input = driver.find_element_by_xpath("//*[@id='ember918']")
+		signin_button = driver.find_element_by_xpath("//*[@id='ember920']")
 		email = input("Please enter your zyBooks email: ")
+		if(email == "quit"):
+			print("--Exiting--")
+			driver.quit()
+			exit()
 		email_input.send_keys(email)
 		password = getpass.getpass("Enter your zyBooks password: ")
+		if(password == "quit"):
+			print("--Exiting--")
+			driver.quit()
+			exit()
 		password_input.send_keys(password)
 		signin_button.click()
 		time.sleep(3)
@@ -29,41 +35,55 @@ def selectzyBook(driver):
 	while(True):
 		try:
 			course_identifier = input("Enter your course ID or the name of your course: ")
+			if(input == "quit"):
+				print("--Exiting--")
+				driver.quit()
+				exit()
 			course_identifier = course_identifier.replace(" ", "")
 			zybook_selection = driver.find_element_by_xpath("//a[contains(@href, '" + course_identifier + "')]")
 			zybook_selection.click()
 			break
 		except:
-			print("Invalid course")
-		else:
-			print("Course selected\n")
+			print("--Invalid course--\n")
+	print("zyBook Selected\n")
 
 def chapterSelection(driver):
 	while(True):
 		chapter = input("Enter the chapter number you want completed: ")
+		if(chapter == "quit"):
+			print("--Exiting--")
+			driver.quit()
+			exit()
 		try:
 			chapter_selection = driver.find_element_by_xpath("//*[@class='chapter-title' and contains(text(), '" + chapter + ".')]")
 			chapter_selection.click()
+			print("Chapter Selected\n")
 			return chapter
 		except:
-			print("Invalid chapter")
+			print("--Invalid chapter--\n")
 	
 def sectionSelection(driver, chapter):
 	while(True):
-		section = input("\nEnter the section number you want completed. Enter \"all\" if you would like the entire chapter completed. To exit the script, enter \"quit\": ")
-		if(section.isnumeric()):
-			section_button = driver.find_element_by_xpath("//span[@class='section-title' and contains(text(), '" + chapter + "." + section + "')]")
+		section_selection = input("Enter the section number you want completed. Enter \"all\" if you would like the entire chapter completed: ")
+		if(section_selection == "quit"):
+			print("--Exiting--")
+			driver.quit()
+			exit()
+		if(section_selection.isnumeric()):
+			section_button = driver.find_element_by_xpath("//span[@class='section-title' and contains(text(), '" + chapter + "." + section_selection + "')]")
 			section_button.click()
+			print("\nStarting chapter " + chapter +" section " + section_selection + "...")
 			completeParticipationActivities(driver)
 			return_to_zybook = driver.find_element_by_xpath("//a[@href='/zybook/SMUCSE1342EvansSpring2019']")
 			return_to_zybook.click()
 			break
-		elif(section == "all"):
+		elif(section_selection == "all"):
 			sections = driver.find_elements_by_xpath("//span[@class='section-title' and contains(text(), '" + chapter + ".')]")
 			for index, section in enumerate(sections, 1):
 				section = str(index)
 				section_link = driver.find_element_by_xpath("//span[@class='section-title' and contains(text(), '" + chapter + "." + section + "')]")
 				section_link.click()
+				print("\nStarting chapter " + chapter +" section " + index + "...")
 				completeParticipationActivities(driver)
 				return_to_zybook = driver.find_element_by_xpath("//a[@href='/zybook/SMUCSE1342EvansSpring2019']")
 				return_to_zybook.click()
@@ -93,7 +113,6 @@ def playAnimations(driver):
 		time.sleep(1)
 		while(True):
 			if(animation.find_elements_by_xpath(".//div[@class='pause-button']")):
-				time.sleep(.1)
 				continue
 			try:
 				play_button = animation.find_element_by_xpath(".//div[@class='play-button  bounce']")
@@ -149,10 +168,16 @@ def completeSelectionProblems(driver):
 					break
 		print("Completed selection problem set")
 
-driver = webdriver.Firefox()
+options = Options()
+options.headless = True
+driver = webdriver.Firefox(options = options)
+print("To exit the script, enter \"quit\" at any prompt.")
+print("\nHeadless Firefox browswer initiated.\n")
 login(driver)
 selectzyBook(driver)
-time.sleep(.5)
+time.sleep(3)
 chapter = chapterSelection(driver)
 sectionSelection(driver, chapter)
-#driver.quit()
+print("\nParticipation activities completed.")
+driver.quit()
+print("Headless Firefox browser closed")
