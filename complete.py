@@ -74,7 +74,7 @@ def sectionSelection(driver, chapter):
 			section_button.click()
 			print("\nStarting chapter " + chapter +" section " + section_selection + "...")
 			completeParticipationActivities(driver)
-			return_to_zybook = driver.find_element_by_xpath("//a[@href='/zybook/SMUCSE1342EvansSpring2019']")
+			return_to_zybook = driver.find_element_by_xpath("//li[@class='bread-crumb']")
 			return_to_zybook.click()
 			break
 		elif(section_selection == "all"):
@@ -85,7 +85,7 @@ def sectionSelection(driver, chapter):
 				section_link.click()
 				print("\nStarting chapter " + chapter +" section " + section + "...")
 				completeParticipationActivities(driver)
-				return_to_zybook = driver.find_element_by_xpath("//a[@href='/zybook/SMUCSE1342EvansSpring2019']")
+				return_to_zybook = driver.find_element_by_xpath("//li[@class='bread-crumb']")
 				return_to_zybook.click()
 			break
 		else:
@@ -171,7 +171,7 @@ def completeSelectionProblems(driver):
 options = Options()
 options.headless = True
 driver = webdriver.Firefox(options = options)
-print("To exit the script, enter \"quit\" at any prompt.")
+print("\nTo exit the script, enter \"quit\" at any prompt.")
 print("\nHeadless Firefox browswer initiated.\n")
 login(driver)
 selectzyBook(driver)
