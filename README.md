@@ -3,7 +3,7 @@ This is a Python script which automatically completes participation activities o
 
 ## Requirements
 A version of [Python 3](https://www.python.org/downloads/) must be installed in order to run this script.
-In addition, the Python Selenium bindings must also be installed, which can be done by running the following command:
+In addition, the Python Selenium bindings must also be installed, which can be done by running the following command with Python installed:
 ```
 pip3 install selenium
 ```
@@ -18,4 +18,5 @@ py -3 complete.py
 ```
 After which the user will be prompted for their username and password.
 On successful login, the user can then enter which chapter and section(s) they would like participation activities to be completed for.
+
 To exit the script before it begins completing activities, enter quit at any prompt.
