@@ -22,3 +22,6 @@ After which the user will be prompted for their username and password.
 On successful login, the user can then enter which chapter and section(s) they would like participation activities to be completed for.
 
 To exit the script before it begins completing activities, enter quit at any prompt.
+
+## To Do
+Remove hardcoded time.sleep() pauses and implement dynamic waits that wait for webpage elements to load
