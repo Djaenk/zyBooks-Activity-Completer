@@ -3,6 +3,7 @@ This is a Python script which automatically completes participation activities o
 
 ## Requirements
 A version of [Python 3](https://www.python.org/downloads/) must be installed in order to run this script.
+As of updating this readme [this](https://www.python.org/ftp/python/3.7.2/python-3.7.2-amd64-webinstall.exe) is the latest version of python.
 In addition, the Python Selenium bindings must also be installed, which can be done by running the following command with Python installed:
 ```
 pip3 install selenium
