@@ -24,7 +24,7 @@ On successful login, the user can then enter which chapter and section(s) they w
 To exit the script before it begins completing activities, enter quit at any prompt.
 
 ## Future Work
-- ~~Remove hardcoded time.sleep() pauses
-- ~~Implement dynamic pauses that wait for page elements to load
+- ~~Remove hardcoded time.sleep() pauses~~
+- ~~Implement dynamic pauses that wait for page elements to load~~
 - Allow completion of multiple chapters at a time
 - Allow completion of multiple specific sections
