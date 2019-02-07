@@ -188,7 +188,7 @@ def completeSelectionProblems(driver):
 		print("Completed selection problem set")
 
 options = Options()
-options.headless = True
+#options.headless = True
 driver = webdriver.Firefox(options = options)
 print("To exit the script, enter \"quit\" at any prompt.")
 print("\nHeadless Firefox browswer initiated.\n")
@@ -206,14 +206,18 @@ except:
 	driver.quit()
 	print("Timed out while loading zyBook table of contents, aborting...")
 	exit()
-chapter = chapterSelection(driver)
-try:
-	WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".section-list")))
-except:
-	driver.quit()
-	print("Timed out while loading zyBook list of sections, aborting...")
-	exit()
-sectionSelection(driver, chapter)
-print("\nParticipation activities completed.")
+while(True):
+	chapter = chapterSelection(driver)
+	try:
+		WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".section-list")))
+	except:
+		driver.quit()
+		print("Timed out while loading zyBook list of sections, aborting...")
+		exit()
+	sectionSelection(driver, chapter)
+	print("\nParticipation activities completed.")
+	input("Would you like to complete more participation activities in this zyBook? (y/n)")
+	if(input != "y"):
+		break
 driver.quit()
 print("Headless Firefox browser closed")
