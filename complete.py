@@ -83,7 +83,7 @@ def sectionSelection(driver, chapter):
 				section = str(index)
 				section_link = driver.find_element_by_xpath("//span[@class='section-title' and contains(text(), '" + chapter + "." + section + "')]")
 				section_link.click()
-				print("\nStarting chapter " + chapter +" section " + index + "...")
+				print("\nStarting chapter " + chapter +" section " + section + "...")
 				completeParticipationActivities(driver)
 				return_to_zybook = driver.find_element_by_xpath("//a[@href='/zybook/SMUCSE1342EvansSpring2019']")
 				return_to_zybook.click()
