@@ -28,3 +28,4 @@ To exit the script before it begins completing activities, enter quit at any pro
 - ~~Implement dynamic pauses that wait for page elements to load~~
 - Allow completion of multiple chapters at a time
 - Allow completion of multiple specific sections
+- Support for more pre-installed browsers (e.g. Google Chrome, Safari, Microsoft Edge, Internet Explorer, Opera, Vivaldi)
