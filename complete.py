@@ -4,6 +4,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.common.action_chains import ActionChains
 import getpass
 import time
 
@@ -115,17 +116,18 @@ def completeParticipationActivities(driver):
 	playAnimations(driver)
 	completeMultipleChoice(driver)
 	completeShortAnswer(driver)
+	completeMatching(driver)
 	completeSelectionProblems(driver)
 		
 def playAnimations(driver):
-	animation_players = driver.find_elements_by_xpath("/html/body/div[3]/div/section/div/article/div/div[@class='interactive-activity-container animation-player-content-resource participation medium ember-view']")
-	animation_players += driver.find_elements_by_xpath("/html/body/div[3]/div/section/div/article/div/div[@class='interactive-activity-container animation-player-content-resource participation large ember-view']")
+	animation_players = driver.find_elements_by_xpath("/html/body/div[3]/div/section/div/article/div/div[@class='interactive-activity-container animation-player-content-resource participation large ember-view']")
+	animation_players += driver.find_elements_by_xpath("/html/body/div[3]/div/section/div/article/div/div[@class='interactive-activity-container animation-player-content-resource participation medium ember-view']")
 	animation_players += driver.find_elements_by_xpath("/html/body/div[3]/div/section/div/article/div/div[@class='interactive-activity-container animation-player-content-resource participation small ember-view']")
 	for animation in animation_players:
-		driver.find_element_by_tag_name('body').send_keys(Keys.HOME)
+		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		double_speed = animation.find_element_by_xpath(".//div[@class='speed-control ']")
 		double_speed.click()
-		start_button = animation.find_element_by_xpath(".//div[@class='start-button start-graphic']")
+		start_button = animation.find_element_by_xpath(".//button[@class='start-button start-graphic zb-button primary raised ember-view']")
 		start_button.click()
 		while(True):
 			if(animation.find_elements_by_xpath(".//div[@class='pause-button']")):
@@ -144,7 +146,7 @@ def completeMultipleChoice(driver):
 	multiple_choice_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container multiple-choice-content-resource participation medium ember-view']")
 	multiple_choice_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container multiple-choice-content-resource participation small ember-view']")
 	for question_set in multiple_choice_sets:
-		driver.find_element_by_tag_name('body').send_keys(Keys.HOME)
+		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		questions = question_set.find_elements_by_xpath(".//div[@class='question-set-question multiple-choice-question ember-view']")
 		for question in questions:
 			choices = question.find_elements_by_xpath(".//label[@aria-hidden='true']")
@@ -159,7 +161,7 @@ def completeShortAnswer(driver):
 	short_answer_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container short-answer-content-resource participation medium ember-view']")
 	short_answer_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container short-answer-content-resource participation small ember-view']")
 	for question_set in short_answer_sets:
-		driver.find_element_by_tag_name('body').send_keys(Keys.HOME)
+		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		questions = question_set.find_elements_by_xpath(".//div[@class='question-set-question short-answer-question ember-view']")
 		for question in questions:
 			show_answer_button = question.find_element_by_xpath(".//button[@class='show-answer-button zb-button secondary ember-view']")
@@ -172,12 +174,49 @@ def completeShortAnswer(driver):
 			check_button.click()
 		print("Completed short answer set")
 
+def completeMatching(driver):
+	matching_sets = driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation large ember-view']")
+	matching_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation medium ember-view']")
+	matching_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation small ember-view']")
+	for matching in matching_sets:
+		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
+		while(True):
+			try:
+				choice = matching.find_element_by_xpath(".//div[@class='js-draggableObject draggable-object ember-view']")
+				choice_text = matching.find_element_by_xpath(".//div[@class='js-draggableObject draggable-object ember-view']/div/span").text
+				choice.click()
+			except:
+				break
+			empty_bucket = matching.find_element_by_xpath(".//div[@class='term-bucket ']")
+			empty_bucket_text = matching.find_element_by_xpath("./..//div[@class='definition']").text
+			empty_bucket.click()
+			action = ActionChains(driver)
+			action.drag_and_drop(choice, empty_bucket).perform()
+			populated_buckets = matching.find_elements_by_xpath(".//div[@class='js-draggableObject draggable-object ember-view']")
+			current_bucket = None
+			for populated_bucket in populated_buckets:
+				if(populated_bucket.find_element_by_xpath("./../../div[@class='definition']").text == empty_bucket_text):
+					current_bucket = populated_bucket
+			if(current_bucket.find_elements_by_xpath("./../..//div[@class='explanation correct']")):
+				continue
+			remaining_empty_buckets = matching.find_elements_by_xpath(".//div[@class='term-bucket ']")
+			for bucket in remaining_empty_buckets:
+				populated_buckets = matching.find_elements_by_xpath(".//div[@class='js-draggableObject draggable-object ember-view']")
+				for populated_bucket in populated_buckets:
+					if(populated_bucket.text == choice_text):
+						choice = populated_bucket
+						break
+				ActionChains(driver).drag_and_drop(choice, bucket).perform()
+				bucket.click()
+				if(bucket.find_elements_by_xpath("./../..//div[@class='explanation correct']")):
+					break
+
 def completeSelectionProblems(driver):
 	selection_problem_sets = driver.find_elements_by_xpath("//div[@class='interactive-activity-container detect-answer-content-resource participation large ember-view']")
 	selection_problem_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container detect-answer-content-resource participation medium ember-view']")
 	selection_problem_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container detect-answer-content-resource participation small ember-view']")
 	for question_set in selection_problem_sets:
-		driver.find_element_by_tag_name('body').send_keys(Keys.HOME)
+		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		questions = question_set.find_elements_by_xpath(".//div[@class='question-set-question detect-answer-question ember-view']")
 		for question in questions:
 			choices = question.find_elements_by_xpath(".//div[@class='unclicked']")
@@ -189,6 +228,7 @@ def completeSelectionProblems(driver):
 
 options = Options()
 #options.headless = True
+#browser = input("Choose the web browser you have installed:\n") #todo: deal with this later
 driver = webdriver.Firefox(options = options)
 print("\nTo exit the script, enter \"quit\" at any prompt.")
 print("\nHeadless Firefox browswer initiated.\n")
