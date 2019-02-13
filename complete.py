@@ -116,7 +116,7 @@ def completeParticipationActivities(driver):
 	playAnimations(driver)
 	completeMultipleChoice(driver)
 	completeShortAnswer(driver)
-	completeMatching(driver)
+	#completeMatching(driver)
 	completeSelectionProblems(driver)
 		
 def playAnimations(driver):
@@ -182,7 +182,7 @@ def completeMatching(driver):
 		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		while(True):
 			try:
-				choice = matching.find_element_by_xpath(".//div[@class='js-draggableObject draggable-object ember-view']")
+				choice = matching.find_element_by_xpath("./div[2]/div[2]/div[1]/ul/li[1]")
 				choice_text = matching.find_element_by_xpath(".//div[@class='js-draggableObject draggable-object ember-view']/div/span").text
 				choice.click()
 			except:
@@ -191,7 +191,12 @@ def completeMatching(driver):
 			empty_bucket_text = matching.find_element_by_xpath("./..//div[@class='definition']").text
 			empty_bucket.click()
 			action = ActionChains(driver)
-			action.drag_and_drop(choice, empty_bucket).perform()
+
+			#The following and all other drag and drop operations within the matching activity type fails to actually move an option into a bucket in Firefox
+			#The drag_and_drop() function itself works perfectly fine, but something about the zyBooks site prevents the releasing of an option into a bucket from registering
+			#My suspicion is that manually doing it triggers some javascript that opens the bucket for dropping, but selenium actions do not trigger that javascript
+			#I have tried every alternative method for performing the operation that I could possibly think of, but none work
+			action.drag_and_drop(choice, empty_bucket).perform() #the drag and drop operation in question
 			populated_buckets = matching.find_elements_by_xpath(".//div[@class='js-draggableObject draggable-object ember-view']")
 			current_bucket = None
 			for populated_bucket in populated_buckets:
