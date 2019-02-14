@@ -114,6 +114,7 @@ def sectionSelection(driver, chapter):
 
 def completeParticipationActivities(driver):
 	playAnimations(driver)
+	completeCustomInteractions(driver)
 	completeMultipleChoice(driver)
 	completeShortAnswer(driver)
 	#completeMatching(driver)
@@ -140,6 +141,16 @@ def playAnimations(driver):
 			if(animation.find_elements_by_xpath(".//div[@class='play-button rotate-180 ']")):
 				break
 		print("Completed animation activity")
+
+def completeCustomInteractions(driver):
+	custom_activties = driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation large ember-view']")
+	custom_activties += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation medium ember-view']")
+	custom_activties += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation small ember-view']")
+	for activity in custom_activties:
+		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
+		buttons = activity.find_elements_by_xpath(".//button[@class='button']")
+		for button in buttons:
+			button.click()
 
 def completeMultipleChoice(driver):
 	multiple_choice_sets = driver.find_elements_by_xpath("//div[@class='interactive-activity-container multiple-choice-content-resource participation large ember-view']")
@@ -230,6 +241,8 @@ def completeSelectionProblems(driver):
 				if(question.find_elements_by_xpath(".//div[@class='explanation has-explanation correct']")):
 					break
 		print("Completed selection problem set")
+
+def completeProgressionChallenges(driver):
 
 options = Options()
 #options.headless = True
