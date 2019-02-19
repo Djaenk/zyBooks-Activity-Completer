@@ -91,7 +91,7 @@ def sectionSelection(driver, chapter):
 				print("Timed out while loading chapter " + chapter + " section " + section_selection + " content, aborting...")
 				exit()
 			completeParticipationActivities(driver)
-			driver.execute_script("window.history.go(-1)")
+			driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]/li").click()
 			break
 		elif(section_selection == "all"):
 			sections = driver.find_elements_by_xpath("//span[@class='section-title' and contains(text(), '" + chapter + ".')]")
@@ -107,7 +107,7 @@ def sectionSelection(driver, chapter):
 					print("Timed out while loading chapter " + chapter + " section " + section + " content, aborting...")
 					exit()
 				completeParticipationActivities(driver)
-				driver.execute_script("window.history.go(-1)")
+				driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]/li").click()
 			break
 		else:
 			print("Please make a valid section selection.")
@@ -243,6 +243,19 @@ def completeSelectionProblems(driver):
 		print("Completed selection problem set")
 
 def completeProgressionChallenges(driver):
+	progression_challenges = driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource challenge large ember-view']")
+	progression_challenges += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource challenge medium ember-view']")
+	progression_challenges += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource challenge small ember-view']")
+	for progression in progression_challenges:
+		progression_status = progression.find_elements_by_xpath(".//div[@class='zyante-progression-status-bar'']/div")
+		for status in progression_status:
+			if status.text == 1:
+				start_button = progression.find_element_by_xpath(".//button[@class='zyante-progression-start-button button']")
+				start_button.click()
+			else:
+				next_button = progression.find_element_by_xpath("class='zyante-progression-next-button button']")
+				next_button.click()
+	return
 
 options = Options()
 #options.headless = True
@@ -250,6 +263,7 @@ options = Options()
 driver = webdriver.Firefox(options = options)
 print("\nTo exit the script, enter \"quit\" at any prompt.")
 print("\nHeadless Firefox browswer initiated.\n")
+
 login(driver)
 try:
 	WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".zybooks-container.large")))
@@ -277,5 +291,6 @@ while(True):
 	input("Would you like to complete more participation activities in this zyBook? (y/n)")
 	if(input != "y"):
 		break
+
 driver.quit()
 print("Headless Firefox browser closed")
