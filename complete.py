@@ -193,12 +193,12 @@ def completeMatching(driver):
 		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		while(True):
 			try:
-				choice = matching.find_element_by_xpath("./div[2]/div[2]/div[1]/ul/li[1]")
+				choice = matching.find_element_by_xpath(".//div[@class='js-draggableObject draggable-object ember-view']")
 				choice_text = matching.find_element_by_xpath(".//div[@class='js-draggableObject draggable-object ember-view']/div/span").text
 				choice.click()
 			except:
 				break
-			empty_bucket = matching.find_element_by_xpath(".//div[@class='term-bucket ']")
+			empty_bucket = matching.find_element_by_xpath(".//div[@class='definition-drag-container flex-row    draggable-object-target ember-view']")
 			empty_bucket_text = matching.find_element_by_xpath("./..//div[@class='definition']").text
 			empty_bucket.click()
 			action = ActionChains(driver)
