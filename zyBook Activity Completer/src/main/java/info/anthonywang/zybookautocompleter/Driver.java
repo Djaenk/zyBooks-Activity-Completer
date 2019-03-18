@@ -1,7 +1,7 @@
 package info.anthonywang.zybookautocompleter;
 
 import java.util.Scanner;
-
+import java.util.logging.Level;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -12,6 +12,7 @@ import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.By;
+import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -19,6 +20,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 import com.machinepublishers.jbrowserdriver.JBrowserDriver;
 import com.machinepublishers.jbrowserdriver.Settings;
+import com.machinepublishers.jbrowserdriver.UserAgent;
 import com.machinepublishers.jbrowserdriver.ProxyConfig;
 
 import net.lightbody.bmp.BrowserMobProxy;
@@ -50,12 +52,13 @@ class Driver {
 		//capabilities.setAcceptInsecureCerts(true);
 		//driver = new PhantomJSDriver(capabilities);
 		//driver = new FirefoxDriver(capabilities);
-		ProxyConfig proxyConfig = new ProxyConfig(ProxyConfig.Type.HTTP, ClientUtil.getConnectableAddress()
-            .getCanonicalHostName(), proxy.getPort());
+		ProxyConfig proxyConfig = new ProxyConfig(ProxyConfig.Type.HTTP, ClientUtil.getConnectableAddress().getCanonicalHostName(), proxy.getPort());
 		Settings.Builder builder = new Settings.Builder();
 		builder.proxy(proxyConfig);
-		builder.ssl("trustanything");
-		builder.headless(false);
+		builder.ssl("/ca-bundle-bmp.crt");
+		builder.userAgent(UserAgent.CHROME);
+		builder.headless(true);
+		builder.loggerLevel(Level.WARNING);
 		driver = new JBrowserDriver(builder.build());
 		proxy.setHarCaptureTypes(CaptureType.getAllContentCaptureTypes());
 		proxy.enableHarCaptureTypes(CaptureType.REQUEST_CONTENT, CaptureType.RESPONSE_CONTENT);
