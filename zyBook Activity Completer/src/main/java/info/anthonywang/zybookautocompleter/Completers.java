@@ -78,8 +78,8 @@ class Completers{
 			for(int j = 0; j < rows.size() - i; j++){
 				WebElement term = bank.findElement(By.cssSelector("div.js-draggableObject"));
 				WebElement bucket = rows.get(i).findElement(By.cssSelector("div.draggable-object-target"));
-				DriverFunctions.dragDropJavaScript(js, term, bucket);
-				DriverFunctions.waitUntilNestedElementVisible(wait, rows.get(i), By.cssSelector("span.message"), "--Timed out watching for message response to matching row--");
+				DriverFunctions.dragDropJavaScript(term, bucket);
+				DriverFunctions.waitUntilNestedElementVisible(rows.get(i), By.cssSelector("span.message"));
 				if(rows.get(i).findElements(By.cssSelector("div.correct")).size() != 0){
 					break;
 				}
@@ -99,7 +99,7 @@ class Completers{
 				else{
 					progression_challenge.findElement(By.cssSelector("button.zyante-progression-next-button")).click();
 				}
-				DriverFunctions.waitForRequest(driver, js, "--Timed out while fetching code output--");
+				DriverFunctions.waitForRequest(driver);
 				Har har = proxy.getHar();
 				List<HarEntry> entries = har.getLog().getEntries();
 				String session_id = "";

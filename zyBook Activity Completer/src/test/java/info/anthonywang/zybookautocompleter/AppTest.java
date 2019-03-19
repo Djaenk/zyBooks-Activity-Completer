@@ -15,6 +15,13 @@ public class AppTest
     @Test
     public void shouldAnswerWithTrue()
     {
+		Driver test = new Driver();
+		test.login();
+		test.selectzyBook();
+		test.selectChapter();
+		test.selectSection();
+		//test.navigateSection();
+		//test.close();
         assertTrue( true );
     }
 }

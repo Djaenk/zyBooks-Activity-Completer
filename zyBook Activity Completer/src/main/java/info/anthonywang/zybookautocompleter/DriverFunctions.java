@@ -12,50 +12,61 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 class DriverFunctions{
+	private static JavascriptExecutor js;
+	private static WebDriverWait wait;
 
-	public static void waitUntilElementVisible(WebDriverWait wait, By locator, String error_message){
+	DriverFunctions(WebDriver driver){
+		js = (JavascriptExecutor) driver;
+		wait = new WebDriverWait(driver, 30);
+	}
+
+	public static void jsClick(WebElement element){
+		js.executeScript("arguments[0].click()", element);
+	}
+
+	public static void waitUntilElementVisible(By locator){
 		try{
 			wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
 		}
 		catch(TimeoutException e){
-			System.out.println(error_message);
+			e.printStackTrace();
 		}
 	}
 
-	public static void waitUntilNestedElementVisible(WebDriverWait wait, WebElement parent, By child, String error_message){
+	public static void waitUntilNestedElementVisible(WebElement parent, By child){
 		try{
 			wait.until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(parent, child));
 		}
 		catch(TimeoutException e){
-			System.out.println(error_message);
+			e.printStackTrace();
 		}
 	}
 
-	public static void waitUntilFinishedLoading(WebDriverWait wait, String error_message){
+	public static void waitUntilFinishedLoading(){
 		try{
 			wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".zb-progress-circular.orange")));
 		}
 		catch(TimeoutException e){
-			System.out.println(error_message);
+			e.printStackTrace();
 		}
 	}
 
-	public static void waitUntilSectionLoaded(WebDriverWait wait, String error_message){
+	public static void waitUntilSectionLoaded(){
 		try{
 			wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".zybook-section.zb-card")));
 		}
 		catch(TimeoutException e){
-			System.out.println(error_message);
+			e.printStackTrace();
 		}
 	}
 
-	public static void waitForRequest(WebDriver driver, JavascriptExecutor js, String error_message){
+	public static void waitForRequest(WebDriver driver){
 		while((Boolean) js.executeScript("return jQuery.active != 0")){
 			driver.manage().timeouts().implicitlyWait(50, TimeUnit.MILLISECONDS);
 		}
 	}
 
-	public static void dragDropJavaScript(JavascriptExecutor js, WebElement dragElement, WebElement dropElement){
+	public static void dragDropJavaScript(WebElement dragElement, WebElement dropElement){
 		final String JS_BUILD_CSS_SELECTOR =
 			"for(var e=arguments[0],n=[],i=function(e,n){if(!e||!n)return 0;f" +
 			"or(var i=0,a=e.length;a>i;i++)if(-1==n.indexOf(e[i]))return 0;re" +

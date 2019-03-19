@@ -22,6 +22,7 @@ import com.machinepublishers.jbrowserdriver.JBrowserDriver;
 import com.machinepublishers.jbrowserdriver.Settings;
 import com.machinepublishers.jbrowserdriver.UserAgent;
 import com.machinepublishers.jbrowserdriver.ProxyConfig;
+import com.machinepublishers.jbrowserdriver.RequestHeaders;
 
 import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.BrowserMobProxyServer;
@@ -54,17 +55,20 @@ class Driver {
 		//driver = new FirefoxDriver(capabilities);
 		ProxyConfig proxyConfig = new ProxyConfig(ProxyConfig.Type.HTTP, ClientUtil.getConnectableAddress().getCanonicalHostName(), proxy.getPort());
 		Settings.Builder builder = new Settings.Builder();
+		builder.screen(new Dimension(1600,900));
 		builder.proxy(proxyConfig);
-		builder.ssl("/ca-bundle-bmp.crt");
+		builder.ssl("src/main/resources/ca-bundle-bmp.crt");
 		builder.userAgent(UserAgent.CHROME);
-		builder.headless(true);
+		builder.requestHeaders(RequestHeaders.CHROME);
+		builder.headless(false);
 		builder.loggerLevel(Level.WARNING);
+		builder.quickRender(false);
 		driver = new JBrowserDriver(builder.build());
 		proxy.setHarCaptureTypes(CaptureType.getAllContentCaptureTypes());
 		proxy.enableHarCaptureTypes(CaptureType.REQUEST_CONTENT, CaptureType.RESPONSE_CONTENT);
 		js = (JavascriptExecutor) driver;
 		scanner = new Scanner(System.in);
-		wait = new WebDriverWait(driver, 20);
+		wait = new WebDriverWait(driver, 30);
 	}
 
 	void login(){
@@ -89,9 +93,9 @@ class Driver {
 			password = "0MgScv5lqj2T";
 			email_input.sendKeys(email);
 			password_input.sendKeys(password);
-			sign_in.click();
-			DriverFunctions.waitUntilElementVisible(wait, By.cssSelector("button[disabled='']"), "Failed to attempt login, quitting");
-			DriverFunctions.waitUntilFinishedLoading(wait, "--Timed out while logging in--");
+			DriverFunctions.jsClick(sign_in);
+			DriverFunctions.waitUntilElementVisible(By.cssSelector("button[disabled='']"));
+			DriverFunctions.waitUntilFinishedLoading();
 			if(driver.findElements(By.cssSelector("button.signin-button[disabled='']")).size() != 0
 			|| driver.findElements(By.xpath("//div[text()='Invalid email or password']")).size() != 0
 			|| driver.findElements(By.xpath("//div[text()='Must specify a valid email address.']")).size() != 0
@@ -108,15 +112,16 @@ class Driver {
 	}
 
 	void selectzyBook(){
-		DriverFunctions.waitUntilFinishedLoading(wait, "--Failed to load zyBook library--");
+		DriverFunctions.waitUntilFinishedLoading();
 		while(true){
 			System.out.print("Enter your course ID or the name of your course:");
 			//course_identifier = scanner.nextLine().replace(" ", "");
 			course_identifier = "CSE1342";
-			List<WebElement> courses = driver.findElements(By.cssSelector("div.zybook"));
+			List<WebElement> zybooks = driver.findElements(By.cssSelector("div.zybook"));
 			try{
-				driver.findElement(By.xpath("//a[contains(@href, '" + course_identifier + "')]")).click();
-				DriverFunctions.waitUntilFinishedLoading(wait, "--Timed out while loading table of contents--");
+				WebElement zybook = driver.findElement(By.xpath("//a[contains(@href, '" + course_identifier + "')]"));
+				DriverFunctions.jsClick(zybook);
+				DriverFunctions.waitUntilFinishedLoading();
 				table_of_contents_url = driver.getCurrentUrl();
 				break;
 			}
@@ -131,9 +136,10 @@ class Driver {
 		while(true){
 			System.out.print("Enter the chapter to complete: ");
 			//chapter_selection = scanner.nextLine();
-			chapter_selection = "3";
+			chapter_selection = "8";
 			try{
-				driver.findElement(By.xpath("//h3[contains(text(), '" + chapter_selection + ".')]")).click();
+				WebElement chapter = driver.findElement(By.xpath("//h3[contains(text(), '" + chapter_selection + ".')]"));
+				DriverFunctions.jsClick(chapter);
 				break;
 			}
 			catch(NoSuchElementException e){
@@ -145,7 +151,8 @@ class Driver {
 	void selectSection(){
 		while(true){
 			System.out.print("Enter the section to complete. Enter \"all\" to complete all sections: ");
-			section_selection = scanner.nextLine();
+			//section_selection = scanner.nextLine();
+			section_selection = "1";
 			if(section_selection.equals("all")){
 				break;
 			}
@@ -164,20 +171,20 @@ class Driver {
 			List<WebElement> sections = driver.findElements(By.xpath("//span[@class='section-title' and contains(text(), '" + chapter_selection + ".')]"));
 			for(int i = 0; i < sections.size(); i++){
 				driver.get(table_of_contents_url);
-				DriverFunctions.waitUntilFinishedLoading(wait, "--Timed out while loading table of contents--");
+				DriverFunctions.waitUntilFinishedLoading();
 				driver.findElement(By.xpath("//h3[contains(text(), '" + chapter_selection + ".')]")).click();
-				DriverFunctions.waitUntilElementVisible(wait, By.cssSelector("ul.section-list"), "--Timed out while displaying sections in table of contents--");
+				DriverFunctions.waitUntilElementVisible(By.cssSelector("ul.section-list"));
 				sections = driver.findElements(By.xpath("//span[@class='section-title' and contains(text(), '" + chapter_selection + ".')]"));
 				sections.get(i).click();
 				System.out.println("Starting chapter " + chapter_selection + " section " + (i + 1) + "...");
-				DriverFunctions.waitUntilSectionLoaded(wait, "--Section timed out while loading--");
+				DriverFunctions.waitUntilSectionLoaded();
 				completeActivities();
 			}
 		}
 		else{
 			WebElement section = driver.findElement(By.xpath("//span[@class='section-title' and contains(text(), '" + chapter_selection + "." + section_selection + "')]"));
 			section.click();
-			DriverFunctions.waitUntilSectionLoaded(wait, "--Section timed out while loading--");
+			DriverFunctions.waitUntilSectionLoaded();
 			completeActivities();
 		}
 	}
