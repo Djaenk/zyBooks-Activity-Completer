@@ -15,16 +15,13 @@ class DriverFunctions{
 	private static JavascriptExecutor js;
 	private static WebDriverWait wait;
 
-	DriverFunctions(WebDriver driver){
+	public static void jsClick(WebDriver driver, WebElement element){
 		js = (JavascriptExecutor) driver;
-		wait = new WebDriverWait(driver, 30);
-	}
-
-	public static void jsClick(WebElement element){
 		js.executeScript("arguments[0].click()", element);
 	}
 
-	public static void waitUntilElementVisible(By locator){
+	public static void waitUntilElementVisible(WebDriver driver, By locator){
+		wait = new WebDriverWait(driver, 30);
 		try{
 			wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
 		}
@@ -33,7 +30,8 @@ class DriverFunctions{
 		}
 	}
 
-	public static void waitUntilNestedElementVisible(WebElement parent, By child){
+	public static void waitUntilNestedElementVisible(WebDriver driver, WebElement parent, By child){
+		wait = new WebDriverWait(driver, 30);
 		try{
 			wait.until(ExpectedConditions.visibilityOfNestedElementsLocatedBy(parent, child));
 		}
@@ -42,7 +40,8 @@ class DriverFunctions{
 		}
 	}
 
-	public static void waitUntilFinishedLoading(){
+	public static void waitUntilFinishedLoading(WebDriver driver){
+		wait = new WebDriverWait(driver, 30);
 		try{
 			wait.until(ExpectedConditions.invisibilityOfElementLocated(By.cssSelector(".zb-progress-circular.orange")));
 		}
@@ -51,7 +50,8 @@ class DriverFunctions{
 		}
 	}
 
-	public static void waitUntilSectionLoaded(){
+	public static void waitUntilSectionLoaded(WebDriver driver){
+		wait = new WebDriverWait(driver, 30);
 		try{
 			wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector(".zybook-section.zb-card")));
 		}
@@ -61,12 +61,14 @@ class DriverFunctions{
 	}
 
 	public static void waitForRequest(WebDriver driver){
+		js = (JavascriptExecutor) driver;
 		while((Boolean) js.executeScript("return jQuery.active != 0")){
 			driver.manage().timeouts().implicitlyWait(50, TimeUnit.MILLISECONDS);
 		}
 	}
 
-	public static void dragDropJavaScript(WebElement dragElement, WebElement dropElement){
+	public static void dragDropJavaScript(WebDriver driver, WebElement dragElement, WebElement dropElement){
+		js = (JavascriptExecutor) driver;
 		final String JS_BUILD_CSS_SELECTOR =
 			"for(var e=arguments[0],n=[],i=function(e,n){if(!e||!n)return 0;f" +
 			"or(var i=0,a=e.length;a>i;i++)if(-1==n.indexOf(e[i]))return 0;re" +

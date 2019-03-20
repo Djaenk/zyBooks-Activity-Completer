@@ -20,8 +20,8 @@ public class AppTest
 		test.selectzyBook();
 		test.selectChapter();
 		test.selectSection();
-		//test.navigateSection();
-		//test.close();
+		test.navigateSection();
+		test.close();
         assertTrue( true );
     }
 }

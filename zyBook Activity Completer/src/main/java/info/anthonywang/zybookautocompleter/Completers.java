@@ -71,15 +71,15 @@ class Completers{
 		System.out.println("Completed answer detection");
 	}
 
-	public static void completeMatching(JavascriptExecutor js, WebDriverWait wait, WebElement matching_set){
+	public static void completeMatching(WebDriver driver, WebElement matching_set){
 		WebElement bank = matching_set.findElement(By.cssSelector("ul.term-bank"));
 		List<WebElement> rows = matching_set.findElements(By.cssSelector("div.definition-row"));
 		for(int i = 0; i < rows.size(); i++){
 			for(int j = 0; j < rows.size() - i; j++){
 				WebElement term = bank.findElement(By.cssSelector("div.js-draggableObject"));
 				WebElement bucket = rows.get(i).findElement(By.cssSelector("div.draggable-object-target"));
-				DriverFunctions.dragDropJavaScript(term, bucket);
-				DriverFunctions.waitUntilNestedElementVisible(rows.get(i), By.cssSelector("span.message"));
+				DriverFunctions.dragDropJavaScript(driver, term, bucket);
+				DriverFunctions.waitUntilNestedElementVisible(driver, rows.get(i), By.cssSelector("span.message"));
 				if(rows.get(i).findElements(By.cssSelector("div.correct")).size() != 0){
 					break;
 				}
@@ -88,7 +88,7 @@ class Completers{
 		System.out.println("Completed matching");
 	}
 
-	public static void completeProgression(WebDriver driver, JavascriptExecutor js, BrowserMobProxy proxy, WebElement progression_challenge){
+	public static void completeProgression(WebDriver driver, BrowserMobProxy proxy, WebElement progression_challenge){
 		int steps = progression_challenge.findElement(By.cssSelector("div.zyante-progression-status-bar")).findElements(By.cssSelector("div.filled")).size();
 		if(progression_challenge.findElements(By.cssSelector("div.codeOutput")).size() != 0){
 			for(int progress = 0; progress < steps; progress++){

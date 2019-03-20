@@ -31,10 +31,8 @@ import net.lightbody.bmp.proxy.CaptureType;
 
 class Driver {
 	private WebDriver driver;
-	private JavascriptExecutor js;
 	private static BrowserMobProxy proxy;
 	private Scanner scanner;
-	private WebDriverWait wait;
 	private String email;
 	private String password;
 	private String course_identifier;
@@ -66,9 +64,7 @@ class Driver {
 		driver = new JBrowserDriver(builder.build());
 		proxy.setHarCaptureTypes(CaptureType.getAllContentCaptureTypes());
 		proxy.enableHarCaptureTypes(CaptureType.REQUEST_CONTENT, CaptureType.RESPONSE_CONTENT);
-		js = (JavascriptExecutor) driver;
 		scanner = new Scanner(System.in);
-		wait = new WebDriverWait(driver, 30);
 	}
 
 	void login(){
@@ -93,9 +89,9 @@ class Driver {
 			password = "0MgScv5lqj2T";
 			email_input.sendKeys(email);
 			password_input.sendKeys(password);
-			DriverFunctions.jsClick(sign_in);
-			DriverFunctions.waitUntilElementVisible(By.cssSelector("button[disabled='']"));
-			DriverFunctions.waitUntilFinishedLoading();
+			DriverFunctions.jsClick(driver, sign_in);
+			DriverFunctions.waitUntilElementVisible(driver, By.cssSelector("button[disabled='']"));
+			DriverFunctions.waitUntilFinishedLoading(driver);
 			if(driver.findElements(By.cssSelector("button.signin-button[disabled='']")).size() != 0
 			|| driver.findElements(By.xpath("//div[text()='Invalid email or password']")).size() != 0
 			|| driver.findElements(By.xpath("//div[text()='Must specify a valid email address.']")).size() != 0
@@ -112,7 +108,7 @@ class Driver {
 	}
 
 	void selectzyBook(){
-		DriverFunctions.waitUntilFinishedLoading();
+		DriverFunctions.waitUntilFinishedLoading(driver);
 		while(true){
 			System.out.print("Enter your course ID or the name of your course:");
 			//course_identifier = scanner.nextLine().replace(" ", "");
@@ -120,8 +116,8 @@ class Driver {
 			List<WebElement> zybooks = driver.findElements(By.cssSelector("div.zybook"));
 			try{
 				WebElement zybook = driver.findElement(By.xpath("//a[contains(@href, '" + course_identifier + "')]"));
-				DriverFunctions.jsClick(zybook);
-				DriverFunctions.waitUntilFinishedLoading();
+				DriverFunctions.jsClick(driver, zybook);
+				DriverFunctions.waitUntilFinishedLoading(driver);
 				table_of_contents_url = driver.getCurrentUrl();
 				break;
 			}
@@ -139,7 +135,7 @@ class Driver {
 			chapter_selection = "8";
 			try{
 				WebElement chapter = driver.findElement(By.xpath("//h3[contains(text(), '" + chapter_selection + ".')]"));
-				DriverFunctions.jsClick(chapter);
+				DriverFunctions.jsClick(driver, chapter);
 				break;
 			}
 			catch(NoSuchElementException e){
@@ -171,20 +167,20 @@ class Driver {
 			List<WebElement> sections = driver.findElements(By.xpath("//span[@class='section-title' and contains(text(), '" + chapter_selection + ".')]"));
 			for(int i = 0; i < sections.size(); i++){
 				driver.get(table_of_contents_url);
-				DriverFunctions.waitUntilFinishedLoading();
+				DriverFunctions.waitUntilFinishedLoading(driver);
 				driver.findElement(By.xpath("//h3[contains(text(), '" + chapter_selection + ".')]")).click();
-				DriverFunctions.waitUntilElementVisible(By.cssSelector("ul.section-list"));
+				DriverFunctions.waitUntilElementVisible(driver, By.cssSelector("ul.section-list"));
 				sections = driver.findElements(By.xpath("//span[@class='section-title' and contains(text(), '" + chapter_selection + ".')]"));
-				sections.get(i).click();
+				DriverFunctions.jsClick(driver, sections.get(i));
 				System.out.println("Starting chapter " + chapter_selection + " section " + (i + 1) + "...");
-				DriverFunctions.waitUntilSectionLoaded();
+				DriverFunctions.waitUntilSectionLoaded(driver);
 				completeActivities();
 			}
 		}
 		else{
 			WebElement section = driver.findElement(By.xpath("//span[@class='section-title' and contains(text(), '" + chapter_selection + "." + section_selection + "')]"));
-			section.click();
-			DriverFunctions.waitUntilSectionLoaded();
+			DriverFunctions.jsClick(driver, section);
+			DriverFunctions.waitUntilSectionLoaded(driver);
 			completeActivities();
 		}
 	}
@@ -209,13 +205,13 @@ class Driver {
 				else if(activity_class.contains("custom-content-resource")){
 					if(activities.get(i).findElements(By.cssSelector("div.definition-match-payload")).size() != 0){
 						WebElement matching_activity = activities.get(i).findElement(By.cssSelector("div.definition-match-payload"));
-						Completers.completeMatching(js, wait, matching_activity);
+						Completers.completeMatching(driver, matching_activity);
 					}
 				}
 			}
 			else if(activity_class.contains("challenge")){
 				if(activities.get(i).findElements(By.cssSelector("div.progressionTool")).size() != 0){
-					Completers.completeProgression(driver, js, proxy, activities.get(i));
+					Completers.completeProgression(driver, proxy, activities.get(i));
 				}
 			}
 		}
