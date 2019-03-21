@@ -7,16 +7,10 @@ import java.util.NoSuchElementException;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
-//import org.openqa.selenium.phantomjs.PhantomJSDriver;
-import org.openqa.selenium.remote.CapabilityType;
-import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Proxy;
-import org.openqa.selenium.support.ui.WebDriverWait;
-//import org.openqa.selenium.firefox.FirefoxDriver;
+
 
 import com.machinepublishers.jbrowserdriver.JBrowserDriver;
 import com.machinepublishers.jbrowserdriver.Settings;
@@ -41,16 +35,8 @@ class Driver {
 	private String section_selection;
 
 	Driver(){
-		//System.setProperty("webdriver.gecko.driver", "geckodriver.exe");
-		//System.setProperty("phantomjs.binary.path", "phantomjs.exe");
 		proxy = new BrowserMobProxyServer();
 		proxy.start();
-		//Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
-		//DesiredCapabilities capabilities = new DesiredCapabilities();
-		//capabilities.setCapability(CapabilityType.PROXY, seleniumProxy);
-		//capabilities.setAcceptInsecureCerts(true);
-		//driver = new PhantomJSDriver(capabilities);
-		//driver = new FirefoxDriver(capabilities);
 		ProxyConfig proxyConfig = new ProxyConfig(ProxyConfig.Type.HTTP, ClientUtil.getConnectableAddress().getCanonicalHostName(), proxy.getPort());
 		Settings.Builder builder = new Settings.Builder();
 		builder.screen(new Dimension(1600,900));
