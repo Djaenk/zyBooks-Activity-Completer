@@ -1,8 +1,0 @@
--------------------------------------------------------------------------------
-Test set: info.anthonywang.zybookautocompleter.AppTest
--------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 17.923 s <<< FAILURE! - in info.anthonywang.zybookautocompleter.AppTest
-shouldAnswerWithTrue(info.anthonywang.zybookautocompleter.AppTest)  Time elapsed: 17.876 s  <<< ERROR!
-java.lang.NullPointerException
-	at info.anthonywang.zybookautocompleter.AppTest.shouldAnswerWithTrue(AppTest.java:19)
-
