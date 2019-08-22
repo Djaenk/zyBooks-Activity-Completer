@@ -11,9 +11,9 @@ import time
 def login(driver):
 	driver.get("https://learn.zybooks.com/signin")
 	while(True):
-		email_input = driver.find_element_by_xpath("//*[@id='ember912']")
-		password_input = driver.find_element_by_xpath("//*[@id='ember918']")
-		signin_button = driver.find_element_by_xpath("//*[@id='ember920']")
+		email_input = driver.find_element_by_xpath("//input[@type='email']")
+		password_input = driver.find_element_by_xpath("//input[@type='password']")
+		signin_button = driver.find_element_by_class_name("signin-button")
 		email = input("Please enter your zyBooks email: ")
 		if(email == "quit"):
 			print("--Exiting--")
