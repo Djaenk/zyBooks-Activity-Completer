@@ -260,6 +260,7 @@ def completeProgressionChallenges(driver):
 	return
 
 options = Options()
+options.headless = True
 #browser = input("Choose the web browser you have installed:\n") #todo: give options for different installed browsers
 driver = webdriver.Firefox(options = options)
 print("\nTo exit the script, enter \"quit\" at any prompt.")
