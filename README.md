@@ -1,5 +1,5 @@
 # zyBooks Activity Completer
-This is a Python script which automatically completes participation activities on the zyBooks platform. A Java GUI version was previously in development, but has been dropped as I no longer have access to a zyBook. If an issue is encountered, feel free to log it and also contact me about it, as I don't check this project often anymore. The same goes for pull requests, should anybody want to update the script.
+This is a Python script which automatically completes participation activities on the zyBooks platform. A Java GUI version was previously in development, but has been dropped as I no longer have access to a zyBook. If a problem is encountered, feel free to create an issue and attach the generated `exception.log` file. You may also want to contact me about it, as I don't check this project often anymore. The same goes for pull requests, should anybody want to update the script.
 
 ## Requirements
 The Firefox web browser is required to use this script, which can be downloaded at [Mozilla's official site](https://www.mozilla.org/en-US/firefox/new/).
@@ -21,8 +21,3 @@ After which the user will be prompted for their username and password.
 On successful login, the user can then enter which chapter and section(s) they would like participation activities to be completed for.
 
 To exit the script before it begins completing activities, enter quit at any prompt.
-
-## Future Work
-- Allow completion of multiple chapters at a time
-- Allow completion of multiple specific sections
-- Support for more pre-installed browsers (e.g. Google Chrome, Safari, Microsoft Edge, Internet Explorer, Opera, Vivaldi)
