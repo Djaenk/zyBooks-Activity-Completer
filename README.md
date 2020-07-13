@@ -1,5 +1,5 @@
 # zyBooks Activity Completer
-This is a Python script which automatically completes participation activities on the zyBooks platform. A Java GUI version was previously in development, but has been dropped as I no longer have access to a zyBook. If an issue is encountered, feel free to log it and also contact me about it, as I don't check this project often anymore.
+This is a Python script which automatically completes participation activities on the zyBooks platform. A Java GUI version was previously in development, but has been dropped as I no longer have access to a zyBook. If an issue is encountered, feel free to log it and also contact me about it, as I don't check this project often anymore. The same goes for pull requests, should anybody want to update the script.
 
 ## Requirements
 The Firefox web broswer is required to use this script, which can be downloaded at [Mozilla's official site](https://www.mozilla.org/en-US/firefox/new/).
