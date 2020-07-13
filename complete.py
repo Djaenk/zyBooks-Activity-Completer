@@ -7,6 +7,7 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.action_chains import ActionChains
 import getpass
 import time
+import traceback
 
 def login(driver):
 	driver.get("https://learn.zybooks.com/signin")
@@ -264,30 +265,38 @@ driver = webdriver.Firefox(options = options)
 print("\nTo exit the script, enter \"quit\" at any prompt.")
 print("\nHeadless Firefox browswer initiated.\n")
 
-login(driver)
 try:
-	WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".library-page")))
-except:
-	driver.quit()
-	print("Timed out while loading zyBooks library, aborting...")
-	exit()
-selectzyBook(driver)
-try:
-	WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".table-of-contents.ember-view")))
-except:
-	driver.quit()
-	print("Timed out while loading zyBook table of contents, aborting...")
-	exit()
-while(True):
-	chapter = chapterSelection(driver)
+	login(driver)
 	try:
-		WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".section-list")))
+		WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".library-page")))
 	except:
 		driver.quit()
-		print("Timed out while loading zyBook list of sections, aborting...")
+		print("Timed out while loading zyBooks library, aborting...")
 		exit()
-	sectionSelection(driver, chapter)
-	print("Participation activities completed.\n")
+	selectzyBook(driver)
+	try:
+		WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".table-of-contents.ember-view")))
+	except:
+		driver.quit()
+		print("Timed out while loading zyBook table of contents, aborting...")
+		exit()
+	while(True):
+		chapter = chapterSelection(driver)
+		try:
+			WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".section-list")))
+		except:
+			driver.quit()
+			print("Timed out while loading zyBook list of sections, aborting...")
+			exit()
+		sectionSelection(driver, chapter)
+		print("Participation activities completed.\n")
+except:
+	with open("exception.log", "w") as log:
+		traceback.print_exc(file=log)
+		log.write("\n")
+		log.write("#" * 80)
+		log.write("\n")
+		log.write(driver.page_source)
 
 driver.quit()
 print("Headless Firefox browser closed")
