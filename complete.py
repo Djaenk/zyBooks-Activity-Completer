@@ -66,7 +66,7 @@ def chapterSelection(driver):
 			driver.quit()
 			exit()
 		try:
-			chapter_selection = driver.find_element_by_xpath("//*[@class='chapter-title' and contains(text(), '" + chapter + ".')]")
+			chapter_selection = driver.find_elements_by_xpath("//*[contains(@class, 'table-of-contents-list')]/*[contains(@class, 'chapter-item')]")[int(chapter) - 1]
 			chapter_selection.click()
 			print("Chapter Selected\n")
 			return chapter
@@ -75,13 +75,14 @@ def chapterSelection(driver):
 	
 def sectionSelection(driver, chapter):
 	while(True):
+		chapter_selection = driver.find_elements_by_xpath("//*[contains(@class, 'table-of-contents-list')]/*[contains(@class, 'chapter-item')]")[int(chapter) - 1]
 		section_selection = input("Enter the section number you want completed. Enter \"all\" if you would like the entire chapter completed: ")
 		if(section_selection == "quit"):
 			print("--Exiting--")
 			driver.quit()
 			exit()
 		if(section_selection.isnumeric()):
-			section_button = driver.find_element_by_xpath("//span[@class='section-title' and contains(text(), '" + chapter + "." + section_selection + "')]")
+			section_button = chapter_selection.find_elements_by_xpath("//span[@class='section-title']")[int(section_selection) - 1]
 			section_button.click()
 			print("\nStarting chapter " + chapter +" section " + section_selection + "...")
 			try:
@@ -94,12 +95,10 @@ def sectionSelection(driver, chapter):
 			driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]/li").click()
 			break
 		elif(section_selection == "all"):
-			sections = driver.find_elements_by_xpath("//span[@class='section-title' and contains(text(), '" + chapter + ".')]")
-			for index, section in enumerate(sections, 1):
-				section = str(index)
-				section_link = driver.find_element_by_xpath("//span[@class='section-title' and contains(text(), '" + chapter + "." + section + "')]")
-				section_link.click()
-				print("\nStarting chapter " + chapter +" section " + section + "...")
+			sections = chapter_selection.find_elements_by_xpath("//span[@class='section-title']")
+			sections[0].click()
+			for section_index in range(len(sections)):
+				print("\nStarting chapter " + chapter +" section " + str(section_index + 1) + "...")
 				try:
 					WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".zybook-section.zb-card.ember-view")))
 				except:
@@ -107,10 +106,12 @@ def sectionSelection(driver, chapter):
 					print("Timed out while loading chapter " + chapter + " section " + section + " content, aborting...")
 					exit()
 				completeParticipationActivities(driver)
-				driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]/li").click()
+				if(section_index != (len(sections) - 1)):
+					driver.find_element_by_xpath("//span[@class='nav-text next ']").click()
+			driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]/li").click()
 			break
 		else:
-			print("Please make a valid section selection.")
+			print("Please enter a valid section number.")
 
 def completeParticipationActivities(driver):
 	playAnimations(driver)
@@ -258,7 +259,6 @@ def completeProgressionChallenges(driver):
 	return
 
 options = Options()
-options.headless = True
 #browser = input("Choose the web browser you have installed:\n") #todo: give options for different installed browsers
 driver = webdriver.Firefox(options = options)
 print("\nTo exit the script, enter \"quit\" at any prompt.")
@@ -266,7 +266,7 @@ print("\nHeadless Firefox browswer initiated.\n")
 
 login(driver)
 try:
-	WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".zybooks-container.large")))
+	WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".library-page")))
 except:
 	driver.quit()
 	print("Timed out while loading zyBooks library, aborting...")
@@ -287,10 +287,7 @@ while(True):
 		print("Timed out while loading zyBook list of sections, aborting...")
 		exit()
 	sectionSelection(driver, chapter)
-	print("\nParticipation activities completed.")
-	input("Would you like to complete more participation activities in this zyBook? (y/n)")
-	if(input != "y"):
-		break
+	print("Participation activities completed.\n")
 
 driver.quit()
 print("Headless Firefox browser closed")

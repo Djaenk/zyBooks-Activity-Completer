@@ -2,9 +2,8 @@
 This is a Python script which automatically completes participation activities on the zyBooks platform. A Java GUI version was previously in development, but has been dropped as I no longer have access to a zyBook. If an issue is encountered, feel free to log it and also contact me about it, as I don't check this project often anymore. The same goes for pull requests, should anybody want to update the script.
 
 ## Requirements
-The Firefox web broswer is required to use this script, which can be downloaded at [Mozilla's official site](https://www.mozilla.org/en-US/firefox/new/).
+The Firefox web browser is required to use this script, which can be downloaded at [Mozilla's official site](https://www.mozilla.org/en-US/firefox/new/).
 A version of [Python 3](https://www.python.org/downloads/) must be installed in order to run this script.
-As of updating this readme [this](https://www.python.org/ftp/python/3.7.2/python-3.7.2-amd64-webinstall.exe) is the latest version of python.
 In addition, the Python Selenium bindings must also be installed, which can be done by running the following command with Python installed:
 ```
 pip3 install selenium
