@@ -4,13 +4,9 @@ This is a Python script which automatically completes participation activities o
 ## Requirements
 The Firefox web browser is required to use this script, which can be downloaded at [Mozilla's official site](https://www.mozilla.org/en-US/firefox/new/).
 A version of [Python 3](https://www.python.org/downloads/) must be installed in order to run this script.
-In addition, the Python Selenium bindings must also be installed, which can be done by running the following command with Python installed:
-```
-pip3 install selenium
-```
 
 ## Installation
-Download and unzip the latest release into a folder. The complete.py script and geckodriver.exe exectable must be in the same folder.
+Download and unzip the latest release into a folder. The complete.py script and geckodriver.exe exectable must be in the same folder. Install necessary packages by running `pip3 install -r requirements.txt` from the installation directory.
 
 ## Usage
 The script can be started by navigating to the location it has been unzipped to and running the command:
