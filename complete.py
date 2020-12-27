@@ -9,6 +9,46 @@ import getpass
 import time
 import traceback
 
+drag_and_drop_js = '''
+function createEvent(typeOfEvent) {
+    var event = document.createEvent("CustomEvent");
+    event.initCustomEvent(typeOfEvent, true, true, null);
+    event.dataTransfer = {
+        data: {},
+        setData: function(key, value) {
+            this.data[key] = value;
+        },
+        getData: function(key) {
+            return this.data[key];
+        }
+    };
+    return event;
+}
+
+function dispatchEvent(element, event, transferData) {
+    if (transferData !== undefined) {
+        event.dataTransfer = transferData;
+    }
+    if (element.dispatchEvent) {
+        element.dispatchEvent(event);
+    } else if (element.fireEvent) {
+        element.fireEvent("on" + event.type, event);
+    }
+}
+
+function simulateHTML5DragAndDrop(element, destination) {
+    var dragStartEvent = createEvent('dragstart');
+    dispatchEvent(element, dragStartEvent);
+    var dropEvent = createEvent('drop');
+    dispatchEvent(destination, dropEvent, dragStartEvent.dataTransfer);
+    var dragEndEvent = createEvent('dragend');
+    dispatchEvent(element, dragEndEvent, dropEvent.dataTransfer);
+}
+var source = arguments[0];
+var destination = arguments[1];
+simulateHTML5DragAndDrop(source, destination);
+'''
+
 def login(driver):
 	driver.get("https://learn.zybooks.com/signin")
 	while(True):
@@ -18,12 +58,14 @@ def login(driver):
 		email = input("Please enter your zyBooks email: ")
 		if(email == "quit"):
 			print("--Exiting--")
+			driver.close()
 			driver.quit()
 			exit()
 		email_input.send_keys(email)
 		password = getpass.getpass("Enter your zyBooks password: ")
 		if(password == "quit"):
 			print("--Exiting--")
+			driver.close()
 			driver.quit()
 			exit()
 		password_input.send_keys(password)
@@ -32,6 +74,7 @@ def login(driver):
 		try:
 			WebDriverWait(driver, 5).until(expected_conditions.invisibility_of_element((By.CSS_SELECTOR, ".zb-progress-circular.orange.med.message-present.ember-view")))
 		except:
+			driver.close()
 			driver.quit()
 			print("Timed out while authenticating login, aborting...")
 			exit()
@@ -49,6 +92,7 @@ def selectzyBook(driver):
 			course_identifier = input("Enter your course ID or the name of your course: ")
 			if(input == "quit"):
 				print("--Exiting--")
+				driver.close()
 				driver.quit()
 				exit()
 			course_identifier = course_identifier.replace(" ", "")
@@ -64,6 +108,7 @@ def chapterSelection(driver):
 		chapter = input("Enter the chapter number you want completed: ")
 		if(chapter == "quit"):
 			print("--Exiting--")
+			driver.close()
 			driver.quit()
 			exit()
 		try:
@@ -80,6 +125,7 @@ def sectionSelection(driver, chapter):
 		section_selection = input("Enter the section number you want completed. Enter \"all\" if you would like the entire chapter completed: ")
 		if(section_selection == "quit"):
 			print("--Exiting--")
+			driver.close()
 			driver.quit()
 			exit()
 		if(section_selection.isnumeric()):
@@ -89,8 +135,9 @@ def sectionSelection(driver, chapter):
 			try:
 				WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".zybook-section.zb-card.ember-view")))
 			except:
-				driver.quit()
 				print("Timed out while loading chapter " + chapter + " section " + section_selection + " content, aborting...")
+				driver.close()
+				driver.quit()
 				exit()
 			completeParticipationActivities(driver)
 			driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]/li").click()
@@ -103,8 +150,9 @@ def sectionSelection(driver, chapter):
 				try:
 					WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".zybook-section.zb-card.ember-view")))
 				except:
+					print("Timed out while loading chapter " + chapter + " section " + section_index + " content, aborting...")
+					driver.close()
 					driver.quit()
-					print("Timed out while loading chapter " + chapter + " section " + section + " content, aborting...")
 					exit()
 				completeParticipationActivities(driver)
 				if(section_index != (len(sections) - 1)):
@@ -119,7 +167,7 @@ def completeParticipationActivities(driver):
 	completeCustomInteractions(driver)
 	completeMultipleChoice(driver)
 	completeShortAnswer(driver)
-	#completeMatching(driver)
+	completeMatching(driver)
 	completeSelectionProblems(driver)
 		
 def playAnimations(driver):
@@ -192,42 +240,14 @@ def completeMatching(driver):
 	matching_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation medium ember-view']")
 	matching_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation small ember-view']")
 	for matching in matching_sets:
-		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
-		while(True):
-			try:
-				choice = matching.find_element_by_xpath(".//div[@class='js-draggableObject draggable-object ember-view']")
-				choice_text = matching.find_element_by_xpath(".//div[@class='js-draggableObject draggable-object ember-view']/div/span").text
-				choice.click()
-			except:
-				break
-			empty_bucket = matching.find_element_by_xpath(".//div[@class='definition-drag-container flex-row    draggable-object-target ember-view']")
-			empty_bucket_text = matching.find_element_by_xpath("./..//div[@class='definition']").text
-			empty_bucket.click()
-			action = ActionChains(driver)
-
-			#The following and all other drag and drop operations within the matching activity type fails to actually move an option into a bucket in Firefox
-			#The drag_and_drop() function itself works perfectly fine, but something about the zyBooks site prevents the releasing of an option into a bucket from registering
-			#My suspicion is that manually doing it triggers some javascript that opens the bucket for dropping, but selenium actions do not trigger that javascript
-			#I have tried every alternative method for performing the operation that I could possibly think of, but none work
-			action.drag_and_drop(choice, empty_bucket).perform() #the drag and drop operation in question
-			populated_buckets = matching.find_elements_by_xpath(".//div[@class='js-draggableObject draggable-object ember-view']")
-			current_bucket = None
-			for populated_bucket in populated_buckets:
-				if(populated_bucket.find_element_by_xpath("./../../div[@class='definition']").text == empty_bucket_text):
-					current_bucket = populated_bucket
-			if(current_bucket.find_elements_by_xpath("./../..//div[@class='explanation correct']")):
-				continue
-			remaining_empty_buckets = matching.find_elements_by_xpath(".//div[@class='term-bucket ']")
-			for bucket in remaining_empty_buckets:
-				populated_buckets = matching.find_elements_by_xpath(".//div[@class='js-draggableObject draggable-object ember-view']")
-				for populated_bucket in populated_buckets:
-					if(populated_bucket.text == choice_text):
-						choice = populated_bucket
-						break
-				ActionChains(driver).drag_and_drop(choice, bucket).perform()
-				bucket.click()
-				if(bucket.find_elements_by_xpath("./../..//div[@class='explanation correct']")):
-					break
+		matching.click()
+		rows = matching.find_elements_by_class_name("definition-row")
+		for row in rows:
+			while not row.text.endswith("Correct"):
+				choice = matching.find_element_by_class_name("draggable-object")
+				bucket = row.find_element_by_class_name("term-bucket")
+				driver.execute_script(drag_and_drop_js, choice, bucket)
+		print("Completed matching set")
 
 def completeSelectionProblems(driver):
 	selection_problem_sets = driver.find_elements_by_xpath("//div[@class='interactive-activity-container detect-answer-content-resource participation large ember-view']")
@@ -271,23 +291,26 @@ try:
 	try:
 		WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".library-page")))
 	except:
-		driver.quit()
 		print("Timed out while loading zyBooks library, aborting...")
+		driver.close()
+		driver.quit()
 		exit()
 	selectzyBook(driver)
 	try:
 		WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".table-of-contents.ember-view")))
 	except:
-		driver.quit()
 		print("Timed out while loading zyBook table of contents, aborting...")
+		driver.close()
+		driver.quit()
 		exit()
 	while(True):
 		chapter = chapterSelection(driver)
 		try:
 			WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".section-list")))
 		except:
-			driver.quit()
 			print("Timed out while loading zyBook list of sections, aborting...")
+			driver.close()
+			driver.quit()
 			exit()
 		sectionSelection(driver, chapter)
 		print("Participation activities completed.\n")
