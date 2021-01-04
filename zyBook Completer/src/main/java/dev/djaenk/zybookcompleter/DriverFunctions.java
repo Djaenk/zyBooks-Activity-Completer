@@ -1,4 +1,4 @@
-package info.anthonywang.zybookautocompleter;
+package dev.djaenk.zybookcompleter;
 
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;

@@ -1,4 +1,4 @@
-package info.anthonywang.zybookautocompleter;
+package dev.awang.zybookcompleter;
 
 import javafx.application.Application;
 import javafx.event.ActionEvent;

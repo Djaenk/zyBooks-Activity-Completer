@@ -1,95 +1,112 @@
-package info.anthonywang.zybookautocompleter;
+package dev.djaenk.zybookcompleter;
 
 import java.util.Scanner;
-import java.util.logging.Level;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
+import org.openqa.selenium.remote.CapabilityType;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.openqa.selenium.Proxy;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
-
-
-import com.machinepublishers.jbrowserdriver.JBrowserDriver;
-import com.machinepublishers.jbrowserdriver.Settings;
-import com.machinepublishers.jbrowserdriver.UserAgent;
-import com.machinepublishers.jbrowserdriver.ProxyConfig;
-import com.machinepublishers.jbrowserdriver.RequestHeaders;
 
 import net.lightbody.bmp.BrowserMobProxy;
 import net.lightbody.bmp.BrowserMobProxyServer;
 import net.lightbody.bmp.client.ClientUtil;
 import net.lightbody.bmp.proxy.CaptureType;
 
-class Driver {
-	private WebDriver driver;
-	private static BrowserMobProxy proxy;
-	private Scanner scanner;
-	private String email;
-	private String password;
-	private String course_identifier;
-	private String table_of_contents_url;
-	private String chapter_selection;
-	private String section_selection;
+class Completer {
+	private WebDriver driver_;
+	private WebDriverWait wait_;
+	private BrowserMobProxy proxy_;
+	private String email_ = "";
+	private List<String> library_;
 
-	Driver(){
-		proxy = new BrowserMobProxyServer();
-		proxy.start();
-		ProxyConfig proxyConfig = new ProxyConfig(ProxyConfig.Type.HTTP, ClientUtil.getConnectableAddress().getCanonicalHostName(), proxy.getPort());
-		Settings.Builder builder = new Settings.Builder();
-		builder.screen(new Dimension(1600,900));
-		builder.proxy(proxyConfig);
-		builder.ssl("src/main/resources/ca-bundle-bmp.crt");
-		builder.userAgent(UserAgent.CHROME);
-		builder.requestHeaders(RequestHeaders.CHROME);
-		builder.headless(false);
-		builder.loggerLevel(Level.WARNING);
-		builder.quickRender(false);
-		driver = new JBrowserDriver(builder.build());
-		proxy.setHarCaptureTypes(CaptureType.getAllContentCaptureTypes());
-		proxy.enableHarCaptureTypes(CaptureType.REQUEST_CONTENT, CaptureType.RESPONSE_CONTENT);
-		scanner = new Scanner(System.in);
+	Completer() {
+		proxy_ = new BrowserMobProxyServer();
+		proxy_.setTrustAllServers(true);
+		proxy_.enableHarCaptureTypes(
+			CaptureType.RESPONSE_CONTENT
+		);
+		proxy_.start();
+
+		DesiredCapabilities capabilities =
+			new DesiredCapabilities();
+		capabilities.setCapability(
+			CapabilityType.PROXY,
+			ClientUtil.createSeleniumProxy(proxy_)
+		);
+		capabilities.setCapability(
+			CapabilityType.SUPPORTS_JAVASCRIPT,
+			true
+		);
+		driver_ = new HtmlUnitDriver(capabilities);
 	}
 
-	void login(){
-		try{
-			driver.get("https://learn.zybooks.com/signin");
+	String login(String email, String password) {
+		if(!email.isEmpty()){
+			driver_.findElement(By.className("zb-menu")).click();
+			driver_
+			.findElement(By.className("signout-button"))
+			.click();
+			email_ = "";
 		}
-		catch(WebDriverException e){
-			System.out.println("--Unable to load page, quitting--");
-			e.printStackTrace();
-			driver.quit();
-			proxy.stop();
+		
+		driver_.get("https://learn.zybooks.com/signin");
+		WebElement emailInput =
+			driver_.findElement(
+				By.cssSelector("input[type='email']")
+			);
+		WebElement passwordInput =
+			driver_.findElement(
+				By.cssSelector("input[type='password']")
+			);
+		WebElement signInButton =
+			driver_.findElement(
+				By.cssSelector("button.signin-button")
+			);
+		emailInput.sendKeys(email);
+		passwordInput.sendKeys(password);
+		signInButton.click();
+
+		waitUntilDisabled(signInButton);
+		waitUntilLoaded();
+		if (driver_.getCurrentUrl().contains("library")){
+			email_ = email;
+			return "";
+		} else {
+			WebElement error =
+				driver_.findElement(
+					By.cssSelector("div[role='alert']")
+				);
+			return error.getText();
 		}
-		while(true){
-			WebElement email_input = driver.findElement(By.cssSelector("input[type='email']"));
-			WebElement password_input = driver.findElement(By.cssSelector("input[type='password']"));
-			WebElement sign_in = driver.findElement(By.cssSelector("button.signin-button"));
-			System.out.print("Enter zyBooks email:");
-			//email = scanner.nextLine();
-			email = "wanganthony.wang@gmail.com";
-			System.out.print("Enter zyBooks password:");
-			//password = scanner.nextLine();
-			password = "0MgScv5lqj2T";
-			email_input.sendKeys(email);
-			password_input.sendKeys(password);
-			DriverFunctions.jsClick(driver, sign_in);
-			DriverFunctions.waitUntilElementVisible(driver, By.cssSelector("button[disabled='']"));
-			DriverFunctions.waitUntilFinishedLoading(driver);
-			if(driver.findElements(By.cssSelector("button.signin-button[disabled='']")).size() != 0
-			|| driver.findElements(By.xpath("//div[text()='Invalid email or password']")).size() != 0
-			|| driver.findElements(By.xpath("//div[text()='Must specify a valid email address.']")).size() != 0
-			|| driver.findElements(By.xpath("//div[text()='Password must be at least 8 characters.']")).size() != 0){
-					System.out.println("--Invalid email or password--");
-					email_input.clear();
-					password_input.clear();
-				}
-			else{
-				System.out.println("Login Successful");
-				break;
-			}
+	}
+
+	void loadLibrary() {
+		if (email_.isEmpty()) {
+			//must be logged in to retrieve zybooks
+			//throw exception
+		}
+		library_.clear();
+		driver_.get("https://learn.zybooks.com/library");
+		List<WebElement> zybooks =
+			driver_.findElements(
+				By.cssSelector("div[zybookcode]")
+			);
+		for (WebElement zybook : zybooks) {
+			WebElement title =
+				zybook.findElement(
+					By.className("primary-info")
+				);
+			library_.add(title.getText());
 		}
 	}
 
@@ -98,7 +115,6 @@ class Driver {
 		while(true){
 			System.out.print("Enter your course ID or the name of your course:");
 			//course_identifier = scanner.nextLine().replace(" ", "");
-			course_identifier = "CSE1342";
 			List<WebElement> zybooks = driver.findElements(By.cssSelector("div.zybook"));
 			try{
 				WebElement zybook = driver.findElement(By.xpath("//a[contains(@href, '" + course_identifier + "')]"));
@@ -209,5 +225,35 @@ class Driver {
 		proxy.stop();
 		System.out.println("Closed proxy");
 		scanner.close();
+	}
+
+	private void waitUntilLoaded(){
+		try{
+			wait.until(
+				ExpectedConditions.invisibilityOfElementLocated(
+					By.cssSelector(".zb-progress-circular.orange")
+				)
+			);
+		}
+		catch(TimeoutException e){
+			System.err.println("Failed to load");
+			e.printStackTrace();
+		}
+	}
+
+	private void waitUntilDisabled(WebElement element){
+		try{
+			wait.until(
+				ExpectedConditions.attributeToBe(
+					element,
+					"disabled",
+					""
+				)
+			);
+		}
+		catch(TimeoutException e){
+			System.err.println("Timed out while waiting");
+			e.printStackTrace();
+		}
 	}
 }

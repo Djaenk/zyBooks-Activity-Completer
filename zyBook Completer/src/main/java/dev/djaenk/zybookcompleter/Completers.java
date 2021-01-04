@@ -1,4 +1,4 @@
-package info.anthonywang.zybookautocompleter;
+package dev.djaenk.zybookcompleter;
 
 import com.google.common.collect.Iterables;
 import com.google.gson.JsonParser;
