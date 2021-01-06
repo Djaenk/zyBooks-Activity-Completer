@@ -27,7 +27,12 @@ class Completer {
 	private WebDriverWait wait_;
 	private BrowserMobProxy proxy_;
 	private String email_ = "";
-	private List<String> library_;
+	private List<String> zybookHeadings_ = new List<String>();
+	private List<String> zybookCodes_ = new List<String>();
+	private String currentZybook_ = "";
+	private List<String> chapters_ = new List<String>();
+	private List<List<String>> sections_ =
+		new List<List<String>>();
 
 	Completer() {
 		proxy_ = new BrowserMobProxyServer();
@@ -48,6 +53,7 @@ class Completer {
 			true
 		);
 		driver_ = new HtmlUnitDriver(capabilities);
+		wait_ = new WebDriverWait(driver_, 10);
 	}
 
 	String login(String email, String password) {
@@ -90,7 +96,7 @@ class Completer {
 		}
 	}
 
-	void loadLibrary() {
+	void loadZybooks() {
 		if (email_.isEmpty()) {
 			//must be logged in to retrieve zybooks
 			//throw exception
@@ -102,11 +108,65 @@ class Completer {
 				By.cssSelector("div[zybookcode]")
 			);
 		for (WebElement zybook : zybooks) {
-			WebElement title =
+			WebElement heading =
 				zybook.findElement(
-					By.className("primary-info")
+					By.className("heading")
 				);
-			library_.add(title.getText());
+			zybookHeadings_.add(heading.getText());
+			zybookCodes_.add(getAttribute("zybookcode"));
+		}
+	}
+
+	void selectZybook(int index) {
+		if (email_.isEmpty()) {
+			//must be logged in to select zybook
+			//throw exception
+		}
+		currentZybook_ = zybookCodes_.get(index);
+	}
+
+	void loadChaptersAndSections() {
+		chapters_.clear();
+		sections_.clear();
+		driver_.get(
+			"https://learn.zybooks.com/zybook/" + currentZybook_
+		);
+		WebElement tableOfContents =
+			driver_.findElement(
+				By.cssSelector("ul.table-of-contents-list")
+			);
+
+		List<WebElement> chapters =
+			tableOfContents.findElements(
+				By.cssSelector("li.chapter-item")
+			);
+		for (WebElement chapter : chapters) {
+			WebElement chapterTitle =
+				chapter.findElement(
+					By.cssSelector("span.chapter-title")
+				);
+			chapters_.add(chapterTitle.getText());
+
+			chapter.click();
+			WebElement sectionList =
+				chapter.findElement(
+					By.cssSelector("ul.section-list")
+				);
+
+			List<WebElement> sections =
+				sectionList.findElements(
+					By.cssSelector("li.section-item")
+				);
+			sections_.add(new List<String>());
+			for (WebElement section : sections) {
+				WebElement sectionTitle =
+					section.findElement(
+						By.cssSelector("span.section-title")
+					);
+				sections_.get(sections_.size() - 1).add(
+					sectionTitle.getText()
+				);
+			}
 		}
 	}
 
