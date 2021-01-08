@@ -1,6 +1,7 @@
 package dev.djaenk.zybookcompleter;
 
 import java.util.Scanner;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -14,6 +15,7 @@ import org.openqa.selenium.Proxy;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
+import org.bouncycastle.crypto.modes.KCCMBlockCipher;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 
@@ -26,13 +28,16 @@ class Completer {
 	private WebDriver driver_;
 	private WebDriverWait wait_;
 	private BrowserMobProxy proxy_;
+
 	private String email_ = "";
-	private List<String> zybookHeadings_ = new List<String>();
-	private List<String> zybookCodes_ = new List<String>();
+	private List<String> zybookHeadings_ = new ArrayList<String>();
+	private List<String> zybookCodes_ = new ArrayList<String>();
 	private String currentZybook_ = "";
-	private List<String> chapters_ = new List<String>();
+	private List<String> chapters_ = new ArrayList<String>();
+	private String currentChapter_ = "";
 	private List<List<String>> sections_ =
-		new List<List<String>>();
+		new ArrayList<List<String>>();
+	private String currentSection_ = "";
 
 	Completer() {
 		proxy_ = new BrowserMobProxyServer();
@@ -101,7 +106,8 @@ class Completer {
 			//must be logged in to retrieve zybooks
 			//throw exception
 		}
-		library_.clear();
+		zybookHeadings_.clear();
+		zybookCodes_.clear();
 		driver_.get("https://learn.zybooks.com/library");
 		List<WebElement> zybooks =
 			driver_.findElements(
@@ -125,7 +131,11 @@ class Completer {
 		currentZybook_ = zybookCodes_.get(index);
 	}
 
-	void loadChaptersAndSections() {
+	void loadSections() {
+		if (email_.isEmpty()) {
+			//must be logged in to load chapters/sections
+			//throw exception
+		}
 		chapters_.clear();
 		sections_.clear();
 		driver_.get(
@@ -157,7 +167,7 @@ class Completer {
 				sectionList.findElements(
 					By.cssSelector("li.section-item")
 				);
-			sections_.add(new List<String>());
+			sections_.add(new ArrayList<String>());
 			for (WebElement section : sections) {
 				WebElement sectionTitle =
 					section.findElement(
@@ -170,126 +180,137 @@ class Completer {
 		}
 	}
 
-	void selectzyBook(){
-		DriverFunctions.waitUntilFinishedLoading(driver);
-		while(true){
-			System.out.print("Enter your course ID or the name of your course:");
-			//course_identifier = scanner.nextLine().replace(" ", "");
-			List<WebElement> zybooks = driver.findElements(By.cssSelector("div.zybook"));
-			try{
-				WebElement zybook = driver.findElement(By.xpath("//a[contains(@href, '" + course_identifier + "')]"));
-				DriverFunctions.jsClick(driver, zybook);
-				DriverFunctions.waitUntilFinishedLoading(driver);
-				table_of_contents_url = driver.getCurrentUrl();
-				break;
-			}
-			catch(NoSuchElementException e){
-				System.out.println("--Invalid course--");
-			}
+	boolean selectSection(
+			int chapterNumber,
+			int sectionNumber) {
+		if (chapterNumber > chapters_.size()) {
+			return false;
 		}
-		System.out.println("zyBook Selected");
+		if (sectionNumber
+				> sections_.get(chapterNumber - 1).size()
+		) {
+			return false;
+		}
+		//check for logged in
+		driver_.get("https://learn.zybooks.com/library");
+		currentChapter_ = chapters_.get(chapterNumber - 1);
+		currentSection_ =
+			sections_.get(chapterNumber - 1)
+			.get(sectionNumber - 1);
+		WebElement chapter =
+			driver_.findElement(
+				By.xpath("//ul[1]/li[" + chapterNumber + "]")
+			);
+		chapter.findElement(By.xpath("/div[1]")).click();
+		chapter.findElement(
+			By.xpath("/div[2]//li[" + sectionNumber + "]")
+		).click();
+		return true;
 	}
 
-	void selectChapter(){
-		while(true){
-			System.out.print("Enter the chapter to complete: ");
-			//chapter_selection = scanner.nextLine();
-			chapter_selection = "8";
-			try{
-				WebElement chapter = driver.findElement(By.xpath("//h3[contains(text(), '" + chapter_selection + ".')]"));
-				DriverFunctions.jsClick(driver, chapter);
-				break;
+	void completeSection(
+			int chapterNumber,
+			int sectionNumber,
+			boolean animation,
+			boolean customInteraction,
+			boolean multipleChoice,
+			boolean shortAnswer,
+			boolean answerDetection,
+			boolean matching,
+			boolean progression
+	) {
+		if (!selectSection(chapterNumber, sectionNumber)) {
+			return;
+		}
+
+		List<WebElement> activities;
+		if (animation) {
+			activities =
+				driver_.findElements(
+					By.cssSelector(
+						"div.animation-player-content-resource"
+					)
+				);
+			for (WebElement activity : activities) {
+				completeAnimation(activity);
 			}
-			catch(NoSuchElementException e){
-				System.out.println("--Invalid chapter--");
+		}
+		if (customInteraction) {
+			activities =
+				driver_.findElements(
+					By.cssSelector(
+						"div.custom-resource-payload"
+					)
+				);
+			for (WebElement activity : activities) {
+				completeCustomInteraction(activity);
+			}
+		}
+		if (multipleChoice) {
+			activities =
+				driver_.findElements(
+					By.cssSelector(
+						"div.multiple-choice-content-resource"
+					)
+				);
+			for (WebElement activity : activities) {
+				completeMultipleChoice(activity);
+			}
+		}
+		if (shortAnswer) {
+			activities =
+				driver_.findElements(
+					By.cssSelector(
+						"div.short-answer-content-resource"
+					)
+				);
+			for (WebElement activity : activities) {
+				completeShortAnswer(activity);
+			}
+		}
+		if (answerDetection) {
+			activities =
+				driver_.findElements(
+					By.cssSelector(
+						"div.detect-answer-content-resource"
+					)
+				);
+			for (WebElement activity : activities) {
+				completeAnswerDetection(activity);
+			}
+		}
+		if (matching) {
+			activities =
+				driver_.findElements(
+					By.cssSelector(
+						"div.definition-match-payload"
+					)
+				);
+			for (WebElement activity : activities) {
+				completeMatcing(activity);
+			}
+		}
+		if (progression) {
+			activities =
+				driver_.findElements(
+					By.cssSelector(
+						"div.progressionTool"
+					)
+				);
+			for (WebElement activity : activities) {
+				completeProgression(activity);
 			}
 		}
 	}
 
-	void selectSection(){
-		while(true){
-			System.out.print("Enter the section to complete. Enter \"all\" to complete all sections: ");
-			//section_selection = scanner.nextLine();
-			section_selection = "1";
-			if(section_selection.equals("all")){
-				break;
-			}
-			try{
-				Integer.parseInt(section_selection);
-				break;
-			}
-			catch(NumberFormatException e){
-				System.out.println("--Invalid section--");
-			}
-		}
-	}
-
-	void navigateSection(){
-		if(section_selection.equals("all")){
-			List<WebElement> sections = driver.findElements(By.xpath("//span[@class='section-title' and contains(text(), '" + chapter_selection + ".')]"));
-			for(int i = 0; i < sections.size(); i++){
-				driver.get(table_of_contents_url);
-				DriverFunctions.waitUntilFinishedLoading(driver);
-				driver.findElement(By.xpath("//h3[contains(text(), '" + chapter_selection + ".')]")).click();
-				DriverFunctions.waitUntilElementVisible(driver, By.cssSelector("ul.section-list"));
-				sections = driver.findElements(By.xpath("//span[@class='section-title' and contains(text(), '" + chapter_selection + ".')]"));
-				DriverFunctions.jsClick(driver, sections.get(i));
-				System.out.println("Starting chapter " + chapter_selection + " section " + (i + 1) + "...");
-				DriverFunctions.waitUntilSectionLoaded(driver);
-				completeActivities();
-			}
-		}
-		else{
-			WebElement section = driver.findElement(By.xpath("//span[@class='section-title' and contains(text(), '" + chapter_selection + "." + section_selection + "')]"));
-			DriverFunctions.jsClick(driver, section);
-			DriverFunctions.waitUntilSectionLoaded(driver);
-			completeActivities();
-		}
-	}
-
-	private void completeActivities(){
-		List<WebElement> activities = driver.findElements(By.cssSelector("div.interactive-activity-container"));
-		for(int i = 0; i < activities.size(); i++){
-			String activity_class = activities.get(i).getAttribute("class");
-			if(activity_class.contains("participation")){
-				if(activity_class.contains("animation-player-content-resource")){
-					Completers.completeAnimation(activities.get(i));
-				}
-				else if(activity_class.contains("multiple-choice-content-resource")){
-					Completers.completeMultipleChoice(activities.get(i));
-				}
-				else if(activity_class.contains("short-answer-content-resource")){
-					Completers.completeShortAnswer(activities.get(i));
-				}
-				else if(activity_class.contains("detect-answer-content-resource")){
-					Completers.completeAnswerDetection(activities.get(i));
-				}
-				else if(activity_class.contains("custom-content-resource")){
-					if(activities.get(i).findElements(By.cssSelector("div.definition-match-payload")).size() != 0){
-						WebElement matching_activity = activities.get(i).findElement(By.cssSelector("div.definition-match-payload"));
-						Completers.completeMatching(driver, matching_activity);
-					}
-				}
-			}
-			else if(activity_class.contains("challenge")){
-				if(activities.get(i).findElements(By.cssSelector("div.progressionTool")).size() != 0){
-					Completers.completeProgression(driver, proxy, activities.get(i));
-				}
-			}
-		}
-	}
-	
 	void close(){
-		driver.quit();
-		System.out.println("Closed driver");
-		proxy.stop();
-		System.out.println("Closed proxy");
-		scanner.close();
+		driver_.quit();
+		proxy_.stop();
 	}
 
 	private void waitUntilLoaded(){
 		try{
-			wait.until(
+			wait_.until(
 				ExpectedConditions.invisibilityOfElementLocated(
 					By.cssSelector(".zb-progress-circular.orange")
 				)
@@ -303,7 +324,7 @@ class Completer {
 
 	private void waitUntilDisabled(WebElement element){
 		try{
-			wait.until(
+			wait_.until(
 				ExpectedConditions.attributeToBe(
 					element,
 					"disabled",
