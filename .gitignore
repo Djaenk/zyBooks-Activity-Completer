@@ -1,6 +1,9 @@
 # VSCode
 .vscode
 
+# geckodriver
+*geckodriver*
+
 # Compiled class file
 *.class
 
