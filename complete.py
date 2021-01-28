@@ -5,8 +5,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.action_chains import ActionChains
+import os
 import getpass
-import time
 import traceback
 
 drag_and_drop_js = '''
@@ -58,26 +58,24 @@ def login(driver):
 		email = input("Please enter your zyBooks email: ")
 		if(email == "quit"):
 			print("--Exiting--")
-			driver.close()
 			driver.quit()
-			exit()
+			os._exit(0)
 		email_input.send_keys(email)
 		password = getpass.getpass("Enter your zyBooks password: ")
 		if(password == "quit"):
 			print("--Exiting--")
-			driver.close()
 			driver.quit()
-			exit()
+			os._exit(0)
 		password_input.send_keys(password)
 		signin_button.click()
-		time.sleep(1)
 		try:
-			WebDriverWait(driver, 5).until(expected_conditions.invisibility_of_element((By.CSS_SELECTOR, ".zb-progress-circular.orange.med.message-present.ember-view")))
+			driver.implicitly_wait(1)
+			WebDriverWait(driver, 30).until(expected_conditions.invisibility_of_element((By.CSS_SELECTOR, ".zb-progress-circular.orange.med.message-present.ember-view")))
+			driver.implicitly_wait(0)
 		except:
-			driver.close()
 			driver.quit()
 			print("Timed out while authenticating login, aborting...")
-			exit()
+			os._exit(0)
 		if(driver.find_elements_by_xpath("//button[@disabled='']") or driver.find_elements_by_xpath("//div[contains(text(), 'Invalid email or password')]")):
 			print("--Invalid email or password--\n")
 			email_input.clear()
@@ -88,13 +86,12 @@ def login(driver):
 
 def selectzyBook(driver):
 	while(True):
+		course_identifier = input("Enter your course ID or the name of your course: ")
+		if(course_identifier == "quit"):
+			print("--Exiting--")
+			driver.quit()
+			os._exit(0)
 		try:
-			course_identifier = input("Enter your course ID or the name of your course: ")
-			if(input == "quit"):
-				print("--Exiting--")
-				driver.close()
-				driver.quit()
-				exit()
 			course_identifier = course_identifier.replace(" ", "")
 			zybook_selection = driver.find_element_by_xpath("//a[contains(@href, '" + course_identifier + "')]")
 			zybook_selection.click()
@@ -108,9 +105,8 @@ def chapterSelection(driver):
 		chapter = input("Enter the chapter number you want completed: ")
 		if(chapter == "quit"):
 			print("--Exiting--")
-			driver.close()
 			driver.quit()
-			exit()
+			os._exit(0)
 		try:
 			chapter_selection = driver.find_elements_by_xpath("//*[contains(@class, 'table-of-contents-list')]/*[contains(@class, 'chapter-item')]")[int(chapter) - 1]
 			chapter_selection.click()
@@ -125,9 +121,8 @@ def sectionSelection(driver, chapter):
 		section_selection = input("Enter the section number you want completed. Enter \"all\" if you would like the entire chapter completed: ")
 		if(section_selection == "quit"):
 			print("--Exiting--")
-			driver.close()
 			driver.quit()
-			exit()
+			os._exit(0)
 		if(section_selection.isnumeric()):
 			section_button = chapter_selection.find_elements_by_xpath("//span[@class='section-title']")[int(section_selection) - 1]
 			section_button.click()
@@ -136,9 +131,8 @@ def sectionSelection(driver, chapter):
 				WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".zybook-section.zb-card.ember-view")))
 			except:
 				print("Timed out while loading chapter " + chapter + " section " + section_selection + " content, aborting...")
-				driver.close()
 				driver.quit()
-				exit()
+				os._exit(0)
 			completeParticipationActivities(driver)
 			driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]/li").click()
 			break
@@ -151,9 +145,8 @@ def sectionSelection(driver, chapter):
 					WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".zybook-section.zb-card.ember-view")))
 				except:
 					print("Timed out while loading chapter " + chapter + " section " + section_index + " content, aborting...")
-					driver.close()
 					driver.quit()
-					exit()
+					os._exit(0)
 				completeParticipationActivities(driver)
 				if(section_index != (len(sections) - 1)):
 					driver.find_element_by_xpath("//span[@class='nav-text next ']").click()
@@ -279,10 +272,14 @@ def completeProgressionChallenges(driver):
 				next_button.click()
 	return
 
+if(os.name == 'nt'):
+	geckodriver_path = '.\\geckodriver.exe'
+else:
+	geckodriver_path = './geckodriver'
 options = Options()
-options.headless = True
+options.headless = False
 #browser = input("Choose the web browser you have installed:\n") #todo: give options for different installed browsers
-driver = webdriver.Firefox(options = options)
+driver = webdriver.Firefox(executable_path = geckodriver_path, options = options)
 print("\nTo exit the script, enter \"quit\" at any prompt.")
 print("\nHeadless Firefox browswer initiated.\n")
 
@@ -292,26 +289,23 @@ try:
 		WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".library-page")))
 	except:
 		print("Timed out while loading zyBooks library, aborting...")
-		driver.close()
 		driver.quit()
-		exit()
+		os._exit(0)
 	selectzyBook(driver)
 	try:
 		WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".table-of-contents.ember-view")))
 	except:
 		print("Timed out while loading zyBook table of contents, aborting...")
-		driver.close()
 		driver.quit()
-		exit()
+		os._exit(0)
 	while(True):
 		chapter = chapterSelection(driver)
 		try:
 			WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".section-list")))
 		except:
 			print("Timed out while loading zyBook list of sections, aborting...")
-			driver.close()
 			driver.quit()
-			exit()
+			os._exit(0)
 		sectionSelection(driver, chapter)
 		print("Participation activities completed.\n")
 except:
