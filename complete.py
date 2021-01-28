@@ -277,7 +277,7 @@ if(os.name == 'nt'):
 else:
 	geckodriver_path = './geckodriver'
 options = Options()
-options.headless = False
+options.headless = True
 #browser = input("Choose the web browser you have installed:\n") #todo: give options for different installed browsers
 driver = webdriver.Firefox(executable_path = geckodriver_path, options = options)
 print("\nTo exit the script, enter \"quit\" at any prompt.")
