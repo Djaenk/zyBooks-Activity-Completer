@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import NoSuchElementException
 import os
 import getpass
 import traceback
@@ -156,6 +157,11 @@ def sectionSelection(driver, chapter):
 			print("Please enter a valid section number.")
 
 def completeParticipationActivities(driver):
+	try:
+		# Handles Canvas integration popup
+		driver.find_element_by_xpath("//*[@class='zb-button secondary raised ember-view']").click()
+	except NoSuchElementException:
+		pass
 	playAnimations(driver)
 	completeCustomInteractions(driver)
 	completeMultipleChoice(driver)
