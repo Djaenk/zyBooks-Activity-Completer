@@ -135,7 +135,10 @@ def sectionSelection(driver, chapter):
 				driver.quit()
 				os._exit(0)
 			completeParticipationActivities(driver)
-			driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]/li").click()
+			try:
+				driver.find_element_by_xpath("/html/body/div[4]/header/div[1]/div/ul/a[2]").click()
+			except NoSuchElementException:
+				driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]").click()
 			break
 		elif(section_selection == "all"):
 			sections = chapter_selection.find_elements_by_xpath("//span[@class='section-title']")
@@ -150,8 +153,11 @@ def sectionSelection(driver, chapter):
 					os._exit(0)
 				completeParticipationActivities(driver)
 				if(section_index != (len(sections) - 1)):
-					driver.find_element_by_xpath("//span[@class='nav-text next ']").click()
-			driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]/li").click()
+					driver.find_element_by_css_selector("nav.section-nav.next > a.ember-view.nav-link").click()
+			try:
+				driver.find_element_by_xpath("/html/body/div[4]/header/div[1]/div/ul/a[2]").click()
+			except NoSuchElementException:
+				driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]").click()
 			break
 		else:
 			print("Please enter a valid section number.")
@@ -175,19 +181,19 @@ def playAnimations(driver):
 	animation_players += driver.find_elements_by_xpath("/html/body/div[3]/div/section/div/article/div/div[@class='interactive-activity-container animation-player-content-resource participation small ember-view']")
 	for animation in animation_players:
 		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
-		double_speed = animation.find_element_by_xpath(".//div[@class='speed-control ']")
+		double_speed = animation.find_element_by_css_selector("div.speed-control")
 		double_speed.click()
-		start_button = animation.find_element_by_xpath(".//button[@class='start-button start-graphic zb-button primary raised ember-view']")
+		start_button = animation.find_element_by_css_selector("button.zb-button.primary.raised.ember-view.start-button.start-graphic")
 		start_button.click()
 		while(True):
 			if(animation.find_elements_by_xpath(".//div[@class='pause-button']")):
 				continue
 			try:
-				play_button = animation.find_element_by_xpath(".//div[@class='play-button  bounce']")
+				play_button = animation.find_element_by_css_selector("div.play-button.bounce")
 				play_button.click()
 			except:
 				pass
-			if(animation.find_elements_by_xpath(".//div[@class='play-button rotate-180 ']")):
+			if(animation.find_elements_by_css_selector("div.play-button.rotate-180")):
 				break
 		print("Completed animation activity")
 
@@ -224,13 +230,13 @@ def completeShortAnswer(driver):
 		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		questions = question_set.find_elements_by_xpath(".//div[@class='question-set-question short-answer-question ember-view']")
 		for question in questions:
-			show_answer_button = question.find_element_by_xpath(".//button[@class='show-answer-button zb-button secondary ember-view']")
+			show_answer_button = question.find_element_by_css_selector("button.zb-button.secondary.ember-view.show-answer-button")
 			show_answer_button.click()
 			show_answer_button.click()
 			answer = question.find_element_by_xpath(".//span[@class='forfeit-answer']").text
-			text_area = question.find_element_by_xpath(".//textarea[@class='zb-text-area hide-scrollbar ember-text-area ember-view']")
+			text_area = question.find_element_by_css_selector("textarea.ember-text-area.ember-view.zb-text-area.hide-scrollbar")
 			text_area.send_keys(answer)
-			check_button = question.find_element_by_xpath(".//button[@class='check-button zb-button primary raised ember-view']")
+			check_button = question.find_element_by_css_selector("button.zb-button.primary.raised.ember-view.check-button")
 			check_button.click()
 		print("Completed short answer set")
 
