@@ -176,11 +176,13 @@ def completeParticipationActivities(driver):
 	completeSelectionProblems(driver)
 		
 def playAnimations(driver):
-	animation_players = driver.find_elements_by_xpath("/html/body/div[3]/div/section/div/article/div/div[@class='interactive-activity-container animation-player-content-resource participation large ember-view']")
-	animation_players += driver.find_elements_by_xpath("/html/body/div[3]/div/section/div/article/div/div[@class='interactive-activity-container animation-player-content-resource participation medium ember-view']")
-	animation_players += driver.find_elements_by_xpath("/html/body/div[3]/div/section/div/article/div/div[@class='interactive-activity-container animation-player-content-resource participation small ember-view']")
+	animation_players = driver.find_elements_by_css_selector("div.interactive-activity-container.animation-player-content-resource.participation.large.ember-view")
+	animation_players += driver.find_elements_by_css_selector("div.interactive-activity-container.animation-player-content-resource.participation.medium.ember-view")
+	animation_players += driver.find_elements_by_css_selector("div.interactive-activity-container.animation-player-content-resource.participation.small.ember-view")
 	for animation in animation_players:
-		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
+		# crumbs = driver.find_element_by_css_selector("li.bread-crumb")
+		start = driver.find_element_by_css_selector("div.section-header-row")
+		driver.execute_script("arguments[0].click();", start) # Switched to JavaScript clicking for this because of above crumbs that seemingly can't be hidden or clicked around.
 		double_speed = animation.find_element_by_css_selector("div.speed-control")
 		double_speed.click()
 		start_button = animation.find_element_by_css_selector("button.zb-button.primary.raised.ember-view.start-button.start-graphic")
