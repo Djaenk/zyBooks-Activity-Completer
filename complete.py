@@ -103,6 +103,9 @@ def selectzyBook(driver):
 
 def chapterSelection(driver):
 	while(True):
+		open_chapters = driver.find_elements_by_css_selector("li.toc-item.chapter-item.js-draggableObject.draggable-object.expanded.ember-view")
+		for open_chapter in open_chapters:
+			open_chapter.find_element_by_css_selector("div.chapter-info.unused").click()
 		chapter = input("Enter the chapter number you want completed: ")
 		if(chapter == "quit"):
 			print("--Exiting--")
