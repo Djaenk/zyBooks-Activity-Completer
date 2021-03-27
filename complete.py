@@ -269,8 +269,16 @@ def completeMatching(driver):
 	matching_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation small ember-view']")
 	for matching in matching_sets:
 		if checkCompleted(matching):
-			print("Skipping completed matching activity")
+			print("Skipping completed matching/run activity")
 			continue
+		try: # Support for 'run this code' activities, which use same class definition as matching activities. Only works for some code activities, as some require just running while others require editing the code first
+			run_button = matching.find_element_by_css_selector("button.run-button.zb-button.primary.raised")
+			run_button.click()
+			print("Attempted run activity")
+			continue
+		except NoSuchElementException:
+			pass
+
 		matching.click()
 		rows = matching.find_elements_by_class_name("definition-row")
 		for row in rows:
