@@ -175,11 +175,21 @@ def completeParticipationActivities(driver):
 	completeMatching(driver)
 	completeSelectionProblems(driver)
 		
+def checkCompleted(activity):
+	try:
+		activity.find_element_by_css_selector("div.zb-chevron.title-bar-chevron.orange.large.check.filled.ember-view")
+		return True
+	except NoSuchElementException:
+		return False
+
 def playAnimations(driver):
 	animation_players = driver.find_elements_by_css_selector("div.interactive-activity-container.animation-player-content-resource.participation.large.ember-view")
 	animation_players += driver.find_elements_by_css_selector("div.interactive-activity-container.animation-player-content-resource.participation.medium.ember-view")
 	animation_players += driver.find_elements_by_css_selector("div.interactive-activity-container.animation-player-content-resource.participation.small.ember-view")
 	for animation in animation_players:
+		if checkCompleted(animation):
+			print("Skipping completed animation activity")
+			continue
 		# crumbs = driver.find_element_by_css_selector("li.bread-crumb")
 		start = driver.find_element_by_css_selector("div.section-header-row")
 		driver.execute_script("arguments[0].click();", start) # Switched to JavaScript clicking for this because of above crumbs that seemingly can't be hidden or clicked around.
@@ -204,6 +214,9 @@ def completeCustomInteractions(driver):
 	custom_activties += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation medium ember-view']")
 	custom_activties += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation small ember-view']")
 	for activity in custom_activties:
+		if checkCompleted(activity):
+			print("Skipping completed interactive activity")
+			continue
 		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		buttons = activity.find_elements_by_xpath(".//button[@class='button']")
 		for button in buttons:
@@ -214,9 +227,14 @@ def completeMultipleChoice(driver):
 	multiple_choice_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container multiple-choice-content-resource participation medium ember-view']")
 	multiple_choice_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container multiple-choice-content-resource participation small ember-view']")
 	for question_set in multiple_choice_sets:
+		if checkCompleted(question_set):
+			print("Skipping completed multiple choice activity")
+			continue
 		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		questions = question_set.find_elements_by_xpath(".//div[@class='question-set-question multiple-choice-question ember-view']")
 		for question in questions:
+			if(question.find_elements_by_xpath(".//div[@class='explanation has-explanation correct']")):
+				break
 			choices = question.find_elements_by_xpath(".//label[@aria-hidden='true']")
 			for choice in choices:
 				choice.click()
@@ -229,6 +247,9 @@ def completeShortAnswer(driver):
 	short_answer_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container short-answer-content-resource participation medium ember-view']")
 	short_answer_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container short-answer-content-resource participation small ember-view']")
 	for question_set in short_answer_sets:
+		if checkCompleted(question_set):
+			print("Skipping completed short answer activity")
+			continue
 		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		questions = question_set.find_elements_by_xpath(".//div[@class='question-set-question short-answer-question ember-view']")
 		for question in questions:
@@ -247,6 +268,9 @@ def completeMatching(driver):
 	matching_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation medium ember-view']")
 	matching_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation small ember-view']")
 	for matching in matching_sets:
+		if checkCompleted(matching):
+			print("Skipping completed matching activity")
+			continue
 		matching.click()
 		rows = matching.find_elements_by_class_name("definition-row")
 		for row in rows:
@@ -261,6 +285,9 @@ def completeSelectionProblems(driver):
 	selection_problem_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container detect-answer-content-resource participation medium ember-view']")
 	selection_problem_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container detect-answer-content-resource participation small ember-view']")
 	for question_set in selection_problem_sets:
+		if checkCompleted(question_set):
+			print("Skipping completed selection activity")
+			continue
 		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		questions = question_set.find_elements_by_xpath(".//div[@class='question-set-question detect-answer-question ember-view']")
 		for question in questions:
@@ -271,11 +298,14 @@ def completeSelectionProblems(driver):
 					break
 		print("Completed selection problem set")
 
-def completeProgressionChallenges(driver):
+def completeProgressionChallenges(driver): # Currently not used
 	progression_challenges = driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource challenge large ember-view']")
 	progression_challenges += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource challenge medium ember-view']")
 	progression_challenges += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource challenge small ember-view']")
 	for progression in progression_challenges:
+		if checkCompleted(progression):
+			print("Skipping completed progression activity")
+			continue
 		progression_status = progression.find_elements_by_xpath(".//div[@class='zyante-progression-status-bar'']/div")
 		for status in progression_status:
 			if status.text == 1:
