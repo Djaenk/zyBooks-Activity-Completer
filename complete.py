@@ -179,11 +179,13 @@ def completeParticipationActivities(driver):
 	completeSelectionProblems(driver)
 		
 def checkCompleted(activity):
-	try:
-		activity.find_element_by_css_selector("div.zb-chevron.title-bar-chevron.orange.large.check.filled.ember-view")
-		return True
-	except NoSuchElementException:
-		return False
+	if skip_completed:
+		try:
+			activity.find_element_by_css_selector("div.zb-chevron.title-bar-chevron.orange.large.check.filled.ember-view")
+			return True
+		except NoSuchElementException:
+			return False
+	return False
 
 def playAnimations(driver):
 	animation_players = driver.find_elements_by_css_selector("div.interactive-activity-container.animation-player-content-resource.participation.large.ember-view")
@@ -347,6 +349,7 @@ else:
 	geckodriver_path = './geckodriver'
 options = Options()
 options.headless = True
+skip_completed = True
 #browser = input("Choose the web browser you have installed:\n") #todo: give options for different installed browsers
 driver = webdriver.Firefox(executable_path = geckodriver_path, options = options)
 print("\nTo exit the script, enter \"quit\" at any prompt.")
