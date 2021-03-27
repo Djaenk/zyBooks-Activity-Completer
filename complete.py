@@ -168,8 +168,9 @@ def sectionSelection(driver, chapter):
 def completeParticipationActivities(driver):
 	try:
 		# Handles Canvas integration popup
-		driver.find_element_by_xpath("//*[@class='zb-button secondary raised ember-view']").click()
-	except NoSuchElementException:
+		WebDriverWait(driver, 1).until(expected_conditions.visibility_of_element_located((By.CSS_SELECTOR, "button.zb-button.secondary.raised.ember-view"))) # Delay might need to be adjusted
+		driver.find_element_by_css_selector("button.zb-button.secondary.raised.ember-view").click()
+	except (NoSuchElementException, TimeoutException):
 		pass
 	playAnimations(driver)
 	completeCustomInteractions(driver)
