@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import os
 import getpass
 import traceback
@@ -284,11 +284,25 @@ def completeMatching(driver):
 
 		matching.click()
 		rows = matching.find_elements_by_class_name("definition-row")
+		class row_is_correct(object):
+			def __init__(self, row):
+				self.row = row
+			def __call__(self, driver):
+				if self.row.text.endswith("Correct"):
+					return True
+				else:
+					return False
 		for row in rows:
-			while not row.text.endswith("Correct"):
+			row_correct = False
+			while not row_correct:
 				choice = matching.find_element_by_class_name("draggable-object")
 				bucket = row.find_element_by_class_name("term-bucket")
 				driver.execute_script(drag_and_drop_js, choice, bucket)
+				try:
+					WebDriverWait(row, .75).until(row_is_correct(row)) # Lowering delay causes issues
+					row_correct = True
+				except TimeoutException:
+					pass
 		print("Completed matching set")
 
 def completeSelectionProblems(driver):
