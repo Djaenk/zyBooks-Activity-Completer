@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.action_chains import ActionChains
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 import os
 import getpass
 import traceback
@@ -103,6 +103,9 @@ def selectzyBook(driver):
 
 def chapterSelection(driver):
 	while(True):
+		open_chapters = driver.find_elements_by_css_selector("li.toc-item.chapter-item.js-draggableObject.draggable-object.expanded.ember-view")
+		for open_chapter in open_chapters:
+			open_chapter.find_element_by_css_selector("div.chapter-info.unused").click()
 		chapter = input("Enter the chapter number you want completed: ")
 		if(chapter == "quit"):
 			print("--Exiting--")
@@ -135,7 +138,10 @@ def sectionSelection(driver, chapter):
 				driver.quit()
 				os._exit(0)
 			completeParticipationActivities(driver)
-			driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]/li").click()
+			try:
+				driver.find_element_by_xpath("/html/body/div[4]/header/div[1]/div/ul/a[2]").click()
+			except NoSuchElementException:
+				driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]").click()
 			break
 		elif(section_selection == "all"):
 			sections = chapter_selection.find_elements_by_xpath("//span[@class='section-title']")
@@ -150,8 +156,11 @@ def sectionSelection(driver, chapter):
 					os._exit(0)
 				completeParticipationActivities(driver)
 				if(section_index != (len(sections) - 1)):
-					driver.find_element_by_xpath("//span[@class='nav-text next ']").click()
-			driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]/li").click()
+					driver.find_element_by_css_selector("nav.section-nav.next > a.ember-view.nav-link").click()
+			try:
+				driver.find_element_by_xpath("/html/body/div[4]/header/div[1]/div/ul/a[2]").click()
+			except NoSuchElementException:
+				driver.find_element_by_xpath("/html/body/div[3]/header/div[1]/div/ul/a[2]").click()
 			break
 		else:
 			print("Please enter a valid section number.")
@@ -159,8 +168,9 @@ def sectionSelection(driver, chapter):
 def completeParticipationActivities(driver):
 	try:
 		# Handles Canvas integration popup
-		driver.find_element_by_xpath("//*[@class='zb-button secondary raised ember-view']").click()
-	except NoSuchElementException:
+		WebDriverWait(driver, 1).until(expected_conditions.visibility_of_element_located((By.CSS_SELECTOR, "button.zb-button.secondary.raised.ember-view"))) # Delay might need to be adjusted
+		driver.find_element_by_css_selector("button.zb-button.secondary.raised.ember-view").click()
+	except (NoSuchElementException, TimeoutException):
 		pass
 	playAnimations(driver)
 	completeCustomInteractions(driver)
@@ -169,25 +179,39 @@ def completeParticipationActivities(driver):
 	completeMatching(driver)
 	completeSelectionProblems(driver)
 		
+def checkCompleted(activity):
+	if skip_completed:
+		try:
+			activity.find_element_by_css_selector("div.zb-chevron.title-bar-chevron.orange.large.check.filled.ember-view")
+			return True
+		except NoSuchElementException:
+			return False
+	return False
+
 def playAnimations(driver):
-	animation_players = driver.find_elements_by_xpath("/html/body/div[3]/div/section/div/article/div/div[@class='interactive-activity-container animation-player-content-resource participation large ember-view']")
-	animation_players += driver.find_elements_by_xpath("/html/body/div[3]/div/section/div/article/div/div[@class='interactive-activity-container animation-player-content-resource participation medium ember-view']")
-	animation_players += driver.find_elements_by_xpath("/html/body/div[3]/div/section/div/article/div/div[@class='interactive-activity-container animation-player-content-resource participation small ember-view']")
+	animation_players = driver.find_elements_by_css_selector("div.interactive-activity-container.animation-player-content-resource.participation.large.ember-view")
+	animation_players += driver.find_elements_by_css_selector("div.interactive-activity-container.animation-player-content-resource.participation.medium.ember-view")
+	animation_players += driver.find_elements_by_css_selector("div.interactive-activity-container.animation-player-content-resource.participation.small.ember-view")
 	for animation in animation_players:
-		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
-		double_speed = animation.find_element_by_xpath(".//div[@class='speed-control ']")
+		if checkCompleted(animation):
+			print("Skipping completed animation activity")
+			continue
+		# crumbs = driver.find_element_by_css_selector("li.bread-crumb")
+		start = driver.find_element_by_css_selector("div.section-header-row")
+		driver.execute_script("arguments[0].click();", start) # Switched to JavaScript clicking for this because of above crumbs that seemingly can't be hidden or clicked around.
+		double_speed = animation.find_element_by_css_selector("div.speed-control")
 		double_speed.click()
-		start_button = animation.find_element_by_xpath(".//button[@class='start-button start-graphic zb-button primary raised ember-view']")
+		start_button = animation.find_element_by_css_selector("button.zb-button.primary.raised.ember-view.start-button.start-graphic")
 		start_button.click()
 		while(True):
 			if(animation.find_elements_by_xpath(".//div[@class='pause-button']")):
 				continue
 			try:
-				play_button = animation.find_element_by_xpath(".//div[@class='play-button  bounce']")
+				play_button = animation.find_element_by_css_selector("div.play-button.bounce")
 				play_button.click()
 			except:
 				pass
-			if(animation.find_elements_by_xpath(".//div[@class='play-button rotate-180 ']")):
+			if(animation.find_elements_by_css_selector("div.play-button.rotate-180")):
 				break
 		print("Completed animation activity")
 
@@ -196,6 +220,9 @@ def completeCustomInteractions(driver):
 	custom_activties += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation medium ember-view']")
 	custom_activties += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation small ember-view']")
 	for activity in custom_activties:
+		if checkCompleted(activity):
+			print("Skipping completed interactive activity")
+			continue
 		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		buttons = activity.find_elements_by_xpath(".//button[@class='button']")
 		for button in buttons:
@@ -206,9 +233,14 @@ def completeMultipleChoice(driver):
 	multiple_choice_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container multiple-choice-content-resource participation medium ember-view']")
 	multiple_choice_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container multiple-choice-content-resource participation small ember-view']")
 	for question_set in multiple_choice_sets:
+		if checkCompleted(question_set):
+			print("Skipping completed multiple choice activity")
+			continue
 		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		questions = question_set.find_elements_by_xpath(".//div[@class='question-set-question multiple-choice-question ember-view']")
 		for question in questions:
+			if(question.find_elements_by_xpath(".//div[@class='explanation has-explanation correct']")):
+				break
 			choices = question.find_elements_by_xpath(".//label[@aria-hidden='true']")
 			for choice in choices:
 				choice.click()
@@ -221,16 +253,19 @@ def completeShortAnswer(driver):
 	short_answer_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container short-answer-content-resource participation medium ember-view']")
 	short_answer_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container short-answer-content-resource participation small ember-view']")
 	for question_set in short_answer_sets:
+		if checkCompleted(question_set):
+			print("Skipping completed short answer activity")
+			continue
 		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		questions = question_set.find_elements_by_xpath(".//div[@class='question-set-question short-answer-question ember-view']")
 		for question in questions:
-			show_answer_button = question.find_element_by_xpath(".//button[@class='show-answer-button zb-button secondary ember-view']")
+			show_answer_button = question.find_element_by_css_selector("button.zb-button.secondary.ember-view.show-answer-button")
 			show_answer_button.click()
 			show_answer_button.click()
 			answer = question.find_element_by_xpath(".//span[@class='forfeit-answer']").text
-			text_area = question.find_element_by_xpath(".//textarea[@class='zb-text-area hide-scrollbar ember-text-area ember-view']")
+			text_area = question.find_element_by_css_selector("textarea.ember-text-area.ember-view.zb-text-area.hide-scrollbar")
 			text_area.send_keys(answer)
-			check_button = question.find_element_by_xpath(".//button[@class='check-button zb-button primary raised ember-view']")
+			check_button = question.find_element_by_css_selector("button.zb-button.primary.raised.ember-view.check-button")
 			check_button.click()
 		print("Completed short answer set")
 
@@ -239,13 +274,38 @@ def completeMatching(driver):
 	matching_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation medium ember-view']")
 	matching_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource participation small ember-view']")
 	for matching in matching_sets:
+		if checkCompleted(matching):
+			print("Skipping completed matching/run activity")
+			continue
+		try: # Support for 'run this code' activities, which use same class definition as matching activities. Only works for some code activities, as some require just running while others require editing the code first
+			run_button = matching.find_element_by_css_selector("button.run-button.zb-button.primary.raised")
+			run_button.click()
+			print("Attempted run activity")
+			continue
+		except NoSuchElementException:
+			pass
+
 		matching.click()
 		rows = matching.find_elements_by_class_name("definition-row")
+		class row_is_correct(object):
+			def __init__(self, row):
+				self.row = row
+			def __call__(self, driver):
+				if self.row.text.endswith("Correct"):
+					return True
+				else:
+					return False
 		for row in rows:
-			while not row.text.endswith("Correct"):
+			row_correct = False
+			while not row_correct:
 				choice = matching.find_element_by_class_name("draggable-object")
 				bucket = row.find_element_by_class_name("term-bucket")
 				driver.execute_script(drag_and_drop_js, choice, bucket)
+				try:
+					WebDriverWait(row, .75).until(row_is_correct(row)) # Lowering delay causes issues
+					row_correct = True
+				except TimeoutException:
+					pass
 		print("Completed matching set")
 
 def completeSelectionProblems(driver):
@@ -253,6 +313,9 @@ def completeSelectionProblems(driver):
 	selection_problem_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container detect-answer-content-resource participation medium ember-view']")
 	selection_problem_sets += driver.find_elements_by_xpath("//div[@class='interactive-activity-container detect-answer-content-resource participation small ember-view']")
 	for question_set in selection_problem_sets:
+		if checkCompleted(question_set):
+			print("Skipping completed selection activity")
+			continue
 		driver.find_element_by_xpath("//div[@class='section-header-row']").click()
 		questions = question_set.find_elements_by_xpath(".//div[@class='question-set-question detect-answer-question ember-view']")
 		for question in questions:
@@ -263,11 +326,14 @@ def completeSelectionProblems(driver):
 					break
 		print("Completed selection problem set")
 
-def completeProgressionChallenges(driver):
+def completeProgressionChallenges(driver): # Currently not used
 	progression_challenges = driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource challenge large ember-view']")
 	progression_challenges += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource challenge medium ember-view']")
 	progression_challenges += driver.find_elements_by_xpath("//div[@class='interactive-activity-container custom-content-resource challenge small ember-view']")
 	for progression in progression_challenges:
+		if checkCompleted(progression):
+			print("Skipping completed progression activity")
+			continue
 		progression_status = progression.find_elements_by_xpath(".//div[@class='zyante-progression-status-bar'']/div")
 		for status in progression_status:
 			if status.text == 1:
@@ -284,6 +350,7 @@ else:
 	geckodriver_path = './geckodriver'
 options = Options()
 options.headless = True
+skip_completed = True
 #browser = input("Choose the web browser you have installed:\n") #todo: give options for different installed browsers
 driver = webdriver.Firefox(executable_path = geckodriver_path, options = options)
 print("\nTo exit the script, enter \"quit\" at any prompt.")
