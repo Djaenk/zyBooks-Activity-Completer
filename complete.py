@@ -46,9 +46,8 @@ simulateHTML5DragAndDrop(source, destination);
 '''
 
 # Enter your zybooks login below with the course code
-myEmail = "ExampleEmail@gmail.com"
-myPass = "ExamplePass123"
-myCourseCode = "ExampleCourseCode"
+email = ""     # "ExampleEmail@gmail.com"
+course = ""    # "ExampleCourseCode"
 
 def login(driver):
     driver.get("https://learn.zybooks.com/signin")
@@ -56,13 +55,16 @@ def login(driver):
         email_input = driver.find_element_by_xpath("//input[@type='email']")
         password_input = driver.find_element_by_xpath("//input[@type='password']")
         signin_button = driver.find_element_by_class_name("signin-button")
-        email = email_input.send_keys(myEmail)
+        
+        if not email:
+            email = input("Please enter your zyBooks email: ")
+        email_input.send_keys(myEmail)
         if (email == "quit"):
             print("--Exiting--")
             driver.quit()
             os._exit(0)
 
-        password = password_input.send_keys(myPass)
+        password = getpass.getpass("Enter your zyBooks password: ")
         if (password == "quit"):
             print("--Exiting--")
             driver.quit()
@@ -90,14 +92,15 @@ def login(driver):
 
 def selectzyBook(driver):
     while (True):
-        course_identifier = myCourseCode
-        if (course_identifier == "quit"):
+        if not course:
+            course = input("Enter your course ID or the name of your course: ")
+        if (course == "quit"):
             print("--Exiting--")
             driver.quit()
             os._exit(0)
         try:
-            course_identifier = myCourseCode
-            zybook_selection = driver.find_element_by_xpath("//a[contains(@href, '" + course_identifier + "')]")
+            course = course.replace(" ", "")
+            zybook_selection = driver.find_element_by_xpath("//a[contains(@href, '" + course + "')]")
             zybook_selection.click()
             break
         except:
