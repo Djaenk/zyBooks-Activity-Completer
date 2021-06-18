@@ -15,5 +15,8 @@ py -3 complete.py
 After which the user will be prompted for their username and password.
 On successful login, the user can then enter which chapter and section(s) they would like participation activities to be completed for.
 
+Alternatively, lines 49 and 50 of the script can be edited to automatically use a specified email and course.
+The script will then automatically use those values without prompting or input.
+
 To exit the script before it begins completing activities, enter quit at any prompt.
 Upon exiting, the script may throw an exception. This bug has no effect on usage and no detrimental effects as far I can tell, I just haven't gotten around to fixing it.
