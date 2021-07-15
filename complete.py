@@ -49,7 +49,7 @@ simulateHTML5DragAndDrop(source, destination);
 email = ""     # "ExampleEmail@gmail.com"
 course = ""    # "ExampleCourseCode"
 
-def login(driver):
+def login(driver, email, course):
     driver.get("https://learn.zybooks.com/signin")
     while (True):
         email_input = driver.find_element_by_xpath("//input[@type='email']")
@@ -413,7 +413,7 @@ print("\nTo exit the script, enter \"quit\" at any prompt.")
 print("\nHeadless Firefox browswer initiated.\n")
 
 try:
-    login(driver)
+    login(driver, email, course)
     try:
         WebDriverWait(driver, 10).until(expected_conditions.element_to_be_clickable((By.CSS_SELECTOR, ".library-page")))
     except:
