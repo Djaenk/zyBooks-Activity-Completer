@@ -5,7 +5,7 @@ This is a Python script which automatically completes participation activities o
 The Firefox web browser is required to use this script, which can be downloaded at [Mozilla's official site](https://www.mozilla.org/en-US/firefox/new/). [Python 3](https://www.python.org/downloads/) must be installed in order to run this script.
 
 ## Installation
-Download the `complete.py file` to the directory of choice. The version of [Mozilla's Geckodriver](https://github.com/mozilla/geckodriver/releases) appropriate for your system must also be downloaded and placed into the same directory as the script. Install necessary packages by running `pip3 install -r requirements.txt` from the installation directory.
+Download the `complete.py` file to the directory of choice. The version of [Mozilla's Geckodriver](https://github.com/mozilla/geckodriver/releases) appropriate for your system must also be downloaded and placed into the same directory as the script. Install necessary packages by running `pip3 install -r requirements.txt` from the installation directory.
 
 ## Usage
 The script can be started by navigating to the location it has been unzipped to and running the command:
